@@ -33,6 +33,14 @@ var provider = new firebase.auth.GoogleAuthProvider();
 ```
 This line of code is essential for Firebase to authenticate users, and the `.signInWithPopup` will open a popup window prompting the user to sign in/up. We can also use `.signInWithRedirect` instead to redirect visitors to a page where they would sign in from and is more preffered on mobile browsers.
 
+```js
+document.getElementById("dashboard").style.display = "block";
+document.getElementById("loginscreen").style.display = "none";
+```
+I use the method `.getElementById` to get the HTML element associated with that value, which is the "dashboard" and "loginscreen" in this example. Then I alter the css value of the elements with `.style`. `.display = "block"` makes the element visible, whereas `.display = "none"` makes it invisible. As a result, after the user logs in, the "loginscreen" is replaced with the "dashboard".
+
+### 
+
 <!-- 
 # TODO
 - [ ] Task title ~3d #type @name yyyy-mm-dd  
