@@ -14,12 +14,12 @@ The purpose of this project, which was made for the International Baccalaureate 
 ## Backstory
 The word `Authworria` is defined as `the growing anxiety while completing a story before its fast-approaching deadline`. I picked this name for the project to reflect my concern about finishing it before the deadline, which is rapidly approaching.
 
-<!-- # TODO
+<!-- 
+# TODO
 - [ ] Task title ~3d #type @name yyyy-mm-dd  
   - [ ] Sub-task or description  
-
-
-- [x] Completed task title -->
+- [x] Completed task title 
+-->
 
 # TODO
 - [ ] Sign In & Sign Up
