@@ -12,7 +12,7 @@ Website: [https://authworria.com](https://authworria.com)
 The purpose of this project, which was made for the International Baccalaureate Personal Project, is to develop a website where you can not only game with each other but also socialize with them, combining the gaming experience with the experience of grabbing a cup of coffee with a mate at a cafe.
 
 ## Backstory
-The word `Authoria` is defined as `the growing anxiety while completing a story before its fast-approaching deadline`. I picked this name for the project to reflect my concern about finishing it before the deadline, which is rapidly approaching.
+The word `Authworria` is defined as `the growing anxiety while completing a story before its fast-approaching deadline`. I picked this name for the project to reflect my concern about finishing it before the deadline, which is rapidly approaching.
 
 <!-- # TODO
 - [ ] Task title ~3d #type @name yyyy-mm-dd  
