@@ -1,12 +1,14 @@
 # Information
-
-Website: [https://authworria.com](https://authworria.com)
 <p align="center" style="text-align: center;">            
 <!-- <img alt="Discord" src="https://img.shields.io/discord/857017449743777812?logo=discord&style=flat-square">  -->
 <img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/TheIIISociety?color=brightgreen&label=%40TheIIISociety&logo=twitter&style=flat-square"> 
 <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/TheIIISociety/Authworria?style=flat-square"> 
 <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/TheIIISociety/Authworria?style=flat-square">
 <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/TheIIISociety/Authworria?style=flat-square">
+</p>
+
+<p align="center" style="text-align: center;">            
+          <strong>Website</strong>: <a href="https://authworria.com">https://authworria.com</a> <strong>| Support Email</strong>: <a href="mailto://ray@authworria.com">ray@authworria.com </a>
 </p>
 
 The purpose of this project, which was made for the International Baccalaureate Personal Project, is to develop a website where you can not only game with each other but also socialize with them, combining the gaming experience with the experience of grabbing a cup of coffee with a mate at a cafe.
