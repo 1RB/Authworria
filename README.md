@@ -24,7 +24,14 @@ The word `Authworria` is defined as `the growing anxiety while completing a stor
 # TODO
 - [ ] Sign In & Sign Up
   - [x] Create the login / signup page
-  - [x] Google and other methods of signing in
+  - [ ] Google and other methods of signing in
   - [x] Get data from the login and send to dashboard
+  - [ ] Username filter
 - [ ] Web-Chat
+  - [ ] Validate the users identity using a token
+  - [ ] Create web-chat page
+  - [ ] Add a word filter to block inappropriate messages
 - [ ] Multiplayer Web-Game
+  - [ ] Authorize users with their token
+  - [ ] Design the game
+  - [ ] Add web-chat to the game
