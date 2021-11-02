@@ -15,7 +15,9 @@ The purpose of this project, which was made for the International Baccalaureate 
 The word `Authworria` is defined as `the growing anxiety while completing a story before its fast-approaching deadline`. I picked this name for the project to reflect my concern about finishing it before the deadline, which is rapidly approaching.
 
 ## Explanation
-This project uses Google's [Firebase](https://firebase.google.com) to host and authenticate users, this is done by
+This project uses Google's [Firebase](https://firebase.google.com) to host and authenticate users
+
+### Authentication
 ```js
 var provider = new firebase.auth.GoogleAuthProvider();
           firebase
@@ -27,7 +29,7 @@ var provider = new firebase.auth.GoogleAuthProvider();
               console.log(e);
             });
 ```
-This line of code is essential for Firebase to authenticate users, and the '.signInWithPopup' will open a popup window prompting the user to sign in/up. We can also use a '.signInWithRedirect' to redirect visitors to a page where they would sign in from.
+This line of code is essential for Firebase to authenticate users, and the `.signInWithPopup` will open a popup window prompting the user to sign in/up. We can also use `.signInWithRedirect` instead to redirect visitors to a page where they would sign in from and is more preffered on mobile browsers.
 
 <!-- 
 # TODO
