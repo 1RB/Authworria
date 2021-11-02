@@ -13,6 +13,7 @@
 
 <img src="./img/authworriaimg.png"></img>
 
+
 The purpose of this project, which was made for the International Baccalaureate Personal Project, is to develop a website where you can not only game with each other but also socialize with them, combining the gaming experience with the experience of grabbing a cup of coffee with a mate at a cafe.
 
 ## Backstory
