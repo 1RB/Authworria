@@ -27,7 +27,7 @@ var provider = new firebase.auth.GoogleAuthProvider();
               console.log(e);
             });
 ```
-this snippet of code above is required to 
+This line of code is essential for Firebase to authenticate users, and the '.signInWithPopup' will open a popup window prompting the user to sign in/up. We can also use a '.signInWithRedirect' to redirect visitors to a page where they would sign in from.
 
 <!-- 
 # TODO
