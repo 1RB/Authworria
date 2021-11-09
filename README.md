@@ -8,7 +8,7 @@
 </p>
 
 <p align="center" style="text-align: center;">            
-          <strong>Website</strong>: <a href="https://authworria.com">https://authworria.com</a> <strong>| Support Email</strong>: <a href="mailto://ray@authworria.com">ray@authworria.com </a>
+          <kbd><strong>Website</strong>: <a href="https://authworria.com">https://authworria.com</a> <strong>| Support Email</strong>: <a href="mailto://ray@authworria.com">ray@authworria.com</a></kbd>
 </p>
 
 <img src="./img/authworriaimg.png"></img>
