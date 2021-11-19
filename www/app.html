@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/1788c719dd.js" crossorigin="anonymous"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase-app.js"></script>-->
+  <!-- <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./css/app.css" />
+  <title>app</title>
+</head>
+
+<body>
+  <div id="loading">
+    <svg class="tea" width="57" height="68" viewbox="0 0 37 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M27.0819 17H3.02508C1.91076 17 1.01376 17.9059 1.0485 19.0197C1.15761 22.5177 1.49703 29.7374 2.5 34C4.07125 40.6778 7.18553 44.8868 8.44856 46.3845C8.79051 46.79 9.29799 47 9.82843 47H20.0218C20.639 47 21.2193 46.7159 21.5659 46.2052C22.6765 44.5687 25.2312 40.4282 27.5 34C28.9757 29.8188 29.084 22.4043 29.0441 18.9156C29.0319 17.8436 28.1539 17 27.0819 17Z"
+        stroke="var(--secondary)" stroke-width="2"></path>
+      <path
+        d="M29 23.5C29 23.5 34.5 20.5 35.5 25.4999C36.0986 28.4926 34.2033 31.5383 32 32.8713C29.4555 34.4108 28 34 28 34"
+        stroke="var(--secondary)" stroke-width="2"></path>
+      <path id="teabag" fill="var(--secondary)" fill-rule="evenodd" clip-rule="evenodd"
+        d="M16 25V17H14V25H12C10.3431 25 9 26.3431 9 28V34C9 35.6569 10.3431 37 12 37H18C19.6569 37 21 35.6569 21 34V28C21 26.3431 19.6569 25 18 25H16ZM11 28C11 27.4477 11.4477 27 12 27H18C18.5523 27 19 27.4477 19 28V34C19 34.5523 18.5523 35 18 35H12C11.4477 35 11 34.5523 11 34V28Z">
+      </path>
+      <path id="steamL" d="M17 1C17 1 17 4.5 14 6.5C11 8.5 11 12 11 12" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round" stroke="var(--secondary)"></path>
+      <path id="steamR" d="M21 6C21 6 21 8.22727 19 9.5C17 10.7727 17 13 17 13" stroke="var(--secondary)"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </div>
+  <div id="notloggedin">
+    <h1>You are not logged in</h1>
+    <a href="/login.html"><button>login</button></a>
+  </div>
+  <div id="loggedin">
+    <h1>You are logged in</h1>
+  </div>
+
+
+  <style>
+    #notloggedin {
+      display: none;
+    }
+
+    #loggedin {
+      display: none;
+    }
+  </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js";
+    (async () => {
+      // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
+      
+      const firebaseConfig = {
+        apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
+        authDomain: "authworria.firebaseapp.com",
+        databaseURL:
+        "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "authworria",
+        storageBucket: "authworria.appspot.com",
+        messagingSenderId: "635623599897",
+        appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
+        measurementId: "G-P84R1SCWJB",
+      };
+
+      const app = await firebase.initializeApp(firebaseConfig); // <- bruh this isnt working
+      
+      console.log(app);
+      console.log(firebase.app()); // yup ik thank me later
+      // const analytics = getAnalytics(app);
+      
+    
+    // check if the user is logged in
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        // User is signed in.
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("notloggedin").style.display = "none";
+        document.getElementById("loggedin").style.display = "block";
+        console.log(user)
+      } else {
+        // No user is signed in.
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("notloggedin").style.display = "block";
+        document.getElementById("loggedin").style.display = "none";
+        console.log(user)
+      }
+    });
+})();
+
+
+
+
+
+    </script>
+</body>
+
+</html>

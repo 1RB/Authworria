@@ -12,6 +12,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
+  <link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+  <link rel="manifest" href="../img/site.webmanifest">
   <link rel="stylesheet" href="./css/signup.css" />
   <title>Log in</title>
 </head>
@@ -45,6 +49,7 @@
       document
       .getElementById("googlesignin")
         .addEventListener("click", GoogleLogin);
+
         
       document
       .getElementById("googlesignup")
@@ -78,25 +83,52 @@
         } else {
           greeting = "Good Evening";
         }
-          document.getElementById("userinfo").innerHTML = `
-              <img id="signed-in-pfp" src="${user.photoURL}"></img>
-              <h2 id="signed-in-username">${greeting}, ${user.displayName.split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}</h2>
-                <p id="signed-in-email">${user.email}</p>
-                <button id="app">➡️ Ready to begin? ⬅️</button>
-            `;
+
+        // every hour check greeting text and update it
+        if (hour != today.getHours()) {
+          today = new Date();
+          hour = today.getHours();
+          if (hour < 12) {
+            greeting = "Good Morning";
+          } else if (hour < 18) {
+            greeting = "Good Afternoon";
+          } else {
+            greeting = "Good Evening";
+          }
+        }
+        
+            
+    
+        document.getElementById("userinfo").innerHTML = `
+        <img id="signed-in-pfp" src="${user.photoURL}"></img>
+        <h2 id="signed-in-username">👋 ${greeting}, ${user.displayName.split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}</h2>
+        <p id="signed-in-email">${user.email}</p>
+        <button id="app">➡️ Ready to begin? ⬅️</button>
+        `   
+        if (user.email == null) {
+          document.getElementById("signed-in-email").innerHTML = `
+          <p id="nullemail">You have not provided an email address. Please update your profile.</p>
+          `
+        
+        }
+        document.getElementById("app").addEventListener("click", goToApp);
+                  function goToApp() {
+                    window.location.href = "./app.html";
+                  }
+                  
       
           }
-
-          
-          
+                    
           function isUserSignedIn(){
             firebase.auth().onAuthStateChanged(user => {
               if (user) {
+                document.getElementById('loading').style.display = 'none';
                 document.getElementById('loginscreen').style.display = "none"
                 document.getElementById('dashboard').style.display = "block"
                 showUserDetails(user)
               } else {
-    
+                document.getElementById('loginscreen').style.display = "block"
+                document.getElementById('loading').style.display = 'none';
               }
             })
           }
@@ -143,14 +175,8 @@
       }
 
 
-
-
-
-
-      
-
-
         isUserSignedIn();
+        startTime();
         // function (result) {
           // var token = result.credential.accessToken;
           // var user = result.user;
@@ -173,6 +199,25 @@
 
       //why is this inside the onclick function
   </script>
+  <div id="loading">
+    <div id="loading-container">
+      <svg class="tea" width="57" height="68" viewbox="0 0 37 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M27.0819 17H3.02508C1.91076 17 1.01376 17.9059 1.0485 19.0197C1.15761 22.5177 1.49703 29.7374 2.5 34C4.07125 40.6778 7.18553 44.8868 8.44856 46.3845C8.79051 46.79 9.29799 47 9.82843 47H20.0218C20.639 47 21.2193 46.7159 21.5659 46.2052C22.6765 44.5687 25.2312 40.4282 27.5 34C28.9757 29.8188 29.084 22.4043 29.0441 18.9156C29.0319 17.8436 28.1539 17 27.0819 17Z"
+          stroke="var(--secondary)" stroke-width="2"></path>
+        <path
+          d="M29 23.5C29 23.5 34.5 20.5 35.5 25.4999C36.0986 28.4926 34.2033 31.5383 32 32.8713C29.4555 34.4108 28 34 28 34"
+          stroke="var(--secondary)" stroke-width="2"></path>
+        <path id="teabag" fill="var(--secondary)" fill-rule="evenodd" clip-rule="evenodd"
+          d="M16 25V17H14V25H12C10.3431 25 9 26.3431 9 28V34C9 35.6569 10.3431 37 12 37H18C19.6569 37 21 35.6569 21 34V28C21 26.3431 19.6569 25 18 25H16ZM11 28C11 27.4477 11.4477 27 12 27H18C18.5523 27 19 27.4477 19 28V34C19 34.5523 18.5523 35 18 35H12C11.4477 35 11 34.5523 11 34V28Z">
+        </path>
+        <path id="steamL" d="M17 1C17 1 17 4.5 14 6.5C11 8.5 11 12 11 12" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" stroke="var(--secondary)"></path>
+        <path id="steamR" d="M21 6C21 6 21 8.22727 19 9.5C17 10.7727 17 13 17 13" stroke="var(--secondary)"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </div>
+  </div>
   <div id="loginscreen">
     <div class="container">
       <div class="container__forms">
@@ -272,12 +317,108 @@
   </div>
 
   <div id="dashboard">
+    <div id="toppart">
+      <div id="clock"></div>
+      <button id="signout">Sign Out</button>
+      <button id="editprofile">Edit Profile</button>
+    </div>
     <div id="userinfo"></div>
-    <button id="signout">Sign Out</button>
 
+    <script>
+      function startTime() {
+        // use the element id "clock" to display the time
+        var today = new Date();
+        var h = today.getHours();
+        var m = today.getMinutes();
+        var s = today.getSeconds();
+        m = checkTime(m);
+        s = checkTime(s);
+        // am or pm
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        // 12hr format
+        h = h % 12;
+        h = h ? h : 12; // the hour '0' should be '12'
+        document.getElementById('clock').innerHTML = h + ":" + m + " " + ampm;
+        var t = setTimeout(startTime, 500);
+
+      }
+
+      function checkTime(i) {
+        if (i < 10) {
+          i = "0" + i
+        };
+        return i;
+      }
+    </script>
     <style>
       * {
         overflow: hidden;
+      }
+
+      body {
+        background: url("https://media.discordapp.net/attachments/886383437303402496/905393250196668466/blurry-gradient-haikei.png") no-repeat center center fixed;
+        background-size: cover;
+        margin: 0;
+        padding: 0;
+      }
+
+      #toppart {
+        /* sticky navbar */
+        position: fixed;
+        top: 0;
+        width: 100%;
+        height: 13%;
+        z-index: 1;
+
+      }
+
+      #editprofile {
+        background-color: #F6002B;
+        color: white;
+        border-radius: 5px;
+        border: none;
+        padding: 10px 20px;
+        font-family: "Poppins", sans-serif;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        position: absolute;
+        top: 10px;
+        right: 130px;
+      }
+
+      @keyframes fadeout {
+        0% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 0;
+        }
+      }
+
+      #editprofile:hover {
+        /* shadow */
+        box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+      }
+
+
+      #nullemail {
+        color: black;
+        font-style: italic;
+      }
+
+      #clock {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        background: #FA005B;
+        text-align: center;
+        color: #fff;
       }
 
       #userinfo {
@@ -287,6 +428,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
+        color: #fff;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -296,11 +438,17 @@
       }
 
       #app {
-        background-color: #ff0000;
+        background: url("https://media.discordapp.net/attachments/886383437303402496/905393250196668466/blurry-gradient-haikei.png");
+        background-size: cover;
+        /* set the width of the background image to 100% */
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-attachment: fixed;
+        /* little border around the whole thing */
+        border: 3px solid #fff;
+
         color: white;
         padding: 10px;
-        border-radius: 5px;
-        border: none;
         width: 25%;
         font-family: "Poppins", sans-serif;
         text-align: center;
@@ -308,13 +456,16 @@
         display: inline-block;
         font-size: 16px;
         margin: 4px 2px;
-        -webkit-transition: width 1s;
+        -webkit-transition: width 1s, border 1s;
+        transition: width 1s, border 1s;
       }
 
       #app:hover {
         width: 50%;
+        border: 3px solid #fff;
         box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-        -webkit-transition: width 1s;
+        -webkit-transition: width 1s, border 1s;
+        transition: width 1s, border 1s;
       }
 
       /* when the user stops hovering over the button, the width of the button is reduced */
@@ -323,10 +474,12 @@
 
 
       #signed-in-pfp {
-        border-radius: 100%;
+        border-radius: 50%;
         border-style: solid;
         border-width: 3px;
-        border-color: #272727;
+        border-color: #fff;
+        width: 100px;
+        height: 100px;
         animation: movement 2s;
       }
 
@@ -334,6 +487,7 @@
         0% {
           transform: rotate(0deg);
         }
+
         100% {
           transform: rotate(360deg);
         }
@@ -341,7 +495,7 @@
 
 
 
-       @keyframes upfromdown {
+      @keyframes upfromdown {
         0% {
           opacity: 0;
           transform: translate(-50%, -30%);
@@ -351,7 +505,7 @@
           opacity: 100%;
           transform: translate(-50%, -50%);
         }
-      } 
+      }
 
       #signed-in-username {
         font-size: 2rem;
@@ -362,7 +516,7 @@
       }
 
       #signout {
-        background-color: #ff0000;
+        background-color: #F6002B;
         color: white;
         border-radius: 5px;
         border: none;
@@ -383,11 +537,16 @@
         box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
 
       }
+
+      #loginscreen {
+        display: none;
+      }
     </style>
   </div>
 
   <script src="./js/signup.js"></script>
   <script src="./js/app.js"></script>
+  <script src="./dist/blobity.min.js"></script>
 </body>
 
 </html>
