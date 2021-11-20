@@ -26,7 +26,7 @@
   <body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script type="module">
-        const debugLog = console.info
+      const debugLog = console.info;
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js";
       (async () => {
         // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
@@ -44,9 +44,6 @@
         };
 
         const app = await firebase.initializeApp(firebaseConfig); // <- bruh this isnt working
-
-
-        
 
         document
           .getElementById("googlesignin")
@@ -110,7 +107,7 @@
         function isUserSignedIn() {
           firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-              debugLog("[LOGINHANDLER] Valid user session found.")
+              debugLog("[LOGINHANDLER] Valid user session found.");
               document.getElementById("loginscreen").style.display = "none";
               document.getElementById("dashboard").style.display = "block";
               showUserDetails(user);
@@ -125,7 +122,7 @@
             .signOut()
             .then(function () {
               // Sign-out successful.
-              debugLog("[AUTH] User signed out.")
+              debugLog("[AUTH] User signed out.");
               document.getElementById("dashboard").style.display = "none";
               document.getElementById("loginscreen").style.display = "block";
             })
@@ -157,8 +154,12 @@
               var errorCode = error.code;
               var errorMessage = error.message;
               console.log(errorCode, errorMessage);
-              if (errorCode === "auth/account-exists-with-different-credential") {
-                  debugLog("[AUTH] User already exists with different credential.")
+              if (
+                errorCode === "auth/account-exists-with-different-credential"
+              ) {
+                debugLog(
+                  "[AUTH] User already exists with different credential."
+                );
                 alert(
                   "You have already signed up with a different auth provider for that email."
                 );
@@ -171,36 +172,45 @@
         isUserSignedIn();
 
         function DiscordLogin() {
-          debugLog("[DISCORDLOGIN] Login for DISCORD started.")
+          debugLog("[DISCORDLOGIN] Login for DISCORD started.");
           try {
             let discordwindow = null;
             //check if running on localhost
             if (window.location.hostname == "localhost") {
-                debugLog("[DISCORDLOGIN] Running on localhost, trying to open discord OAuth2 window.")
+              debugLog(
+                "[DISCORDLOGIN] Running on localhost, trying to open discord OAuth2 window."
+              );
               discordwindow = window.open(
                 "https://discord.com/api/oauth2/authorize?client_id=905004053199728670&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fapi%2Fdiscordlogin&response_type=code&scope=identify%20email",
                 "_blank",
                 "toolbar=yes,scrollbars=yes,resizable=yes,width=502,height=722"
               );
-              debugLog("[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion...")
+              debugLog(
+                "[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion..."
+              );
             } else {
-                debugLog("[DISCORDLOGIN] Running in production mode, trying to open discord OAuth2 window.")
+              debugLog(
+                "[DISCORDLOGIN] Running in production mode, trying to open discord OAuth2 window."
+              );
               discordwindow = window.open(
                 "https://discord.com/api/oauth2/authorize?client_id=905004053199728670&redirect_uri=https%3A%2F%2Fauthworria.com%2Fapi%2Fdiscordlogin&response_type=code&scope=email%20identify",
                 "_blank",
                 "toolbar=yes,scrollbars=yes,resizable=yes,width=502,height=722"
               );
-              debugLog("[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion...")
-
+              debugLog(
+                "[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion..."
+              );
             }
             //check if window exists
             if (discordwindow == null) {
-                debugLog("[DISCORDLOGIN] Discord OAuth2 window failed to open.")
+              debugLog("[DISCORDLOGIN] Discord OAuth2 window failed to open.");
               return alert("Please disable your pop-up blocker and try again.");
             }
             let loginInterval = setInterval(function () {
               if (discordwindow.closed) {
-                debugLog("[DISCORDLOGIN] Discord OAuth2 window closed without completion.")
+                debugLog(
+                  "[DISCORDLOGIN] Discord OAuth2 window closed without completion."
+                );
                 clearInterval(loginInterval);
                 return failDiscordLogin("user-exit");
               }
@@ -214,10 +224,10 @@
                   );
                   let access_token = params.get("access_token");
                   let refresh_token = params.get("refresh_token");
-                  debugLog("[DISCORDLOGIN] Discord OAuth2 completed.")
+                  debugLog("[DISCORDLOGIN] Discord OAuth2 completed.");
                   discordwindow.close();
                   clearInterval(loginInterval);
-                  debugLog("[DISCORDLOGIN] Passing token to LOGINHANDLER.")
+                  debugLog("[DISCORDLOGIN] Passing token to LOGINHANDLER.");
                   handleLogin("discord", {
                     access_token: access_token,
                     refresh_token: refresh_token,
@@ -239,12 +249,12 @@
               }
             }
             async function handleLogin(service, data) {
-                debugLog("[LOGINHANDLER| Handling login...")
-                if (service == "discord") {
-                    debugLog("[LOGINHANDLER| Handling login for DISCORD")
+              debugLog("[LOGINHANDLER| Handling login...");
+              if (service == "discord") {
+                debugLog("[LOGINHANDLER| Handling login for DISCORD");
                 //check if data is valid (contains access_token and refresh_token)
                 if (data.access_token && data.refresh_token) {
-                    debugLog("[LOGINHANDLER| Data is valid")
+                  debugLog("[LOGINHANDLER| Data is valid");
                   let token = null;
                   // use jquery to make a post request to the discord account endpoint with access_token and keep the output in a variable called "usr"
                   let usr = null;
@@ -263,9 +273,9 @@
                   });
                   //check if usr is valid
                   if (usr) {
-                    debugLog("[LOGINHANDLER| USR object received.")
+                    debugLog("[LOGINHANDLER| USR information received.");
                     if (usr.id && usr.username) {
-                        debugLog("[LOGINHANDLER| USR object is valid.")
+                      debugLog("[LOGINHANDLER| USR information is valid.");
                       //make request to https://inimicalpart.com/api/v1/genTokenF with the usr var using jquery
                       $.ajax({
                         url: "https://api.inimicalpart.com/v1/genTokenF",
@@ -274,10 +284,11 @@
                           usr: JSON.stringify(usr),
                         },
                         success: function (res) {
-
                           //check if res is valid
                           if (res.errormsg == "User doesnt exist.") {
-                            debugLog("[LOGINHANDLER| User doesn't exist. Creating...")
+                            debugLog(
+                              "[LOGINHANDLER| User doesn't exist. Creating..."
+                            );
                             // usr doesnt exist
                             // make request to https://inimicalpart.com/api/v1/genTokenFS with the usr var using jquery
                             $.ajax({
@@ -290,9 +301,10 @@
                                 console.log(res);
                                 //check if res is valid
                                 if (res.code == 200) {
-                                    debugLog("[LOGINHANDLER| USER created and TOKEN acquired.")
-                                    finishWithTKN(res.token);
-
+                                  debugLog(
+                                    "[LOGINHANDLER| USER created and TOKEN acquired."
+                                  );
+                                  finishWithTKN(res.token);
                                 }
                               },
                               error: function (err) {
@@ -300,15 +312,21 @@
                               },
                             });
                           } else if (res.code == 200) {
-                            debugLog("[LOGINHANDLER| USER exists. TOKEN acquired.")
+                            debugLog(
+                              "[LOGINHANDLER| TOKEN acquired for USER."
+                            );
                             finishWithTKN(res.token);
                           }
                         },
                         error: function (err) {
-                          console.log(err)
+                          console.log(err);
                           //check if res is valid
-                          if (err.responseJSON.errormsg == "User doesnt exist.") {
-                            debugLog("[LOGINHANDLER| User doesn't exist. Creating...")
+                          if (
+                            err.responseJSON.errormsg == "User doesnt exist."
+                          ) {
+                            debugLog(
+                              "[LOGINHANDLER| USER doesn't exist. Creating..."
+                            );
                             // usr doesnt exist
                             // make request to https://inimicalpart.com/api/v1/genTokenFS with the usr var using jquery
                             $.ajax({
@@ -321,9 +339,10 @@
                                 console.log(res);
                                 //check if res is valid
                                 if (res.code == 200) {
-                                    debugLog("[LOGINHANDLER| USER created and TOKEN acquired.")
-                                    finishWithTKN(res.token);
-
+                                  debugLog(
+                                    "[LOGINHANDLER| USER created and AUTHKEY acquired."
+                                  );
+                                  finishWithTKN(res.token);
                                 }
                               },
                               error: function (err) {
@@ -335,28 +354,27 @@
                       });
                     }
                   }
-                  function finishWithTKN(token) {
-                      
-                      debugLog("[LOGINHANDLER] Trying to log in with TOKEN...")
-                      if (token) {
-                          firebase
-                          .auth()
-                          .signInWithCustomToken(token)
-                          .then(function () {
-                        // Sign-in successful.
-                        console.log(
+                  function finishWithTKN(authkey) {
+                    debugLog("[LOGINHANDLER] Trying to log in with AUTHKEY...");
+                    if (authkey) {
+                      firebase
+                        .auth()
+                        .signInWithCustomToken(authkey)
+                        .then(function () {
+                          // Sign-in successful.
+                          console.log(
                             "Successfully signed in as: " +
-                            firebase.auth().currentUser.displayName
-                            );
+                              firebase.auth().currentUser.displayName
+                          );
                         })
-                      .catch(function (error) {
-                        // Handle Errors here.
-                        var errorCode = error.code;
-                        var errorMessage = error.message;
-                        console.log(errorCode, errorMessage);
-                    });
+                        .catch(function (error) {
+                          // Handle Errors here.
+                          var errorCode = error.code;
+                          var errorMessage = error.message;
+                          console.log(errorCode, errorMessage);
+                        });
+                    }
                   }
-                }
                 }
               }
             }
@@ -407,16 +425,16 @@
               <input class="form__submit" type="submit" value="Login" />
               <p class="form__social-text">Or Sign in with your social media</p>
               <div class="form__social-media">
-                <a href="#" class="form__social-icons">
+                <a style="cursor:poiner" class="form__social-icons">
                   <i class="fab fa-firefox"></i>
                 </a>
-                <a id="discordsignin" class="form__social-icons">
+                <a id="discordsignin" style="cursor:poiner" class="form__social-icons">
                   <i class="fab fa-discord"></i>
                 </a>
-                <a id="googlesignin" class="form__social-icons">
+                <a id="googlesignin" style="cursor:poiner" class="form__social-icons">
                   <i class="fab fa-google"></i>
                 </a>
-                <a id="githubsignin" href="#" class="form__social-icons">
+                <a id="githubsignin" style="cursor:poiner" class="form__social-icons">
                   <i class="fab fa-github"></i>
                 </a>
               </div>
@@ -530,6 +548,7 @@
           display: inline-block;
           font-size: 16px;
           margin: 4px 2px;
+          transition: width 1s;
           -webkit-transition: width 1s;
         }
 
@@ -537,6 +556,7 @@
           width: 50%;
           box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2),
             0 6px 20px 0 rgba(0, 0, 0, 0.19);
+          transition: width 1s;
           -webkit-transition: width 1s;
         }
 
