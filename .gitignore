@@ -64,3 +64,9 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+# temp folders
+**/temp/**
+
+# snippet.html
+**/snippet.html

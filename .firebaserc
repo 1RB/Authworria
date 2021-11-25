@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "authworria"
+  },
+  "targets": {
+    "authworria": {
+      "hosting": {
+        "blog": [
+          "blog-authworria"
+        ],
+        "main": [
+          "authworria"
+        ]
+      }
+    }
   }
 }

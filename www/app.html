@@ -15,6 +15,69 @@
   <link rel="stylesheet" href="./css/app.css" />
   <title>app</title>
 </head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js";
+      (async () => {
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
+          authDomain: "authworria.firebaseapp.com",
+          databaseURL:
+          "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "authworria",
+          storageBucket: "authworria.appspot.com",
+          messagingSenderId: "635623599897",
+          appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
+          measurementId: "G-P84R1SCWJB",
+        };
+  
+        const app = await firebase.initializeApp(firebaseConfig); // <- bruh this isnt working
+        
+        console.log(app);
+        console.log(firebase.app()); // yup ik thank me later
+        // const analytics = getAnalytics(app);
+        
+      
+      // check if the user is logged in
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          // User is signed in.
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("app").style.display = "block";
+          showUserDetail(user);
+          console.log(user)
+        } else {
+          // No user is signed in.
+          window.location.href = "./login.html";
+          console.log(user)
+        }
+      });
+        
+        function showUserDetail(user) {
+          document.getElementById("profile-img").innerHTML = `
+          <img id="pfp" src=${user.photoURL}></img>
+          `;
+        }
+  
+        document.getElementById("signout").addEventListener("click", function() {
+          firebase.auth().signOut();
+        });
+  
+        document.getElementsByClassName("dropbtn")[0].addEventListener("click", function() {
+          if (document.getElementById("dropdown-content").style.display == "block") {
+            document.getElementById("dropdown-content").style.display = "none";
+        } else {
+            document.getElementById("dropdown-content").style.display = "block";  
+          }
+          
+        // if the dropdown is open, and you leave both dropdown-content and dropbtn, dropdown-content closes
+        document.getElementById("dropdown-content", "dropbtn").addEventListener("mouseleave", function() {
+          document.getElementById("dropdown-content").style.display = "none";
+        });
+        });
+  })();
+      </script>
 
 <body>
   <div id="loading">
@@ -34,70 +97,77 @@
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
     </svg>
   </div>
-  <div id="notloggedin">
-    <h1>You are not logged in</h1>
-    <a href="/login.html"><button>login</button></a>
+
+  <div id="app">
+    <div id="account">
+      <div class="dropdown">
+        <div id="profile-img" class="dropbtn"></div>
+        <div id="dropdown-content">
+          <a href="login.html">Account</a>
+          <a>Status</a>
+          <a href="login.html">
+            <div id="signout">Sign Out</div>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
-  <div id="loggedin">
-    <h1>You are logged in</h1>
   </div>
 
 
   <style>
-    #notloggedin {
-      display: none;
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #292B2F;
     }
 
-    #loggedin {
-      display: none;
+
+
+    #pfp {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      /* border: 2px solid #000;*/
     }
+
+    #pfp:hover {
+      cursor: pointer;
+      filter: brightness(0.8);
+    }
+
+    #dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #1A202C;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+      border-radius: 5px;
+      border-top-width: 10px;
+      top: 60px;
+      left: 10px;
+    }
+
+    #dropdown-content a {
+      color: #fff;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      border-radius: 5px;
+    }
+
+    #dropdown-content a:hover {
+      background-color: #12161f;
+    }
+
+    /* .dropdown:hover #dropdown-content {
+      display: block;
+    }*/
   </style>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js";
-    (async () => {
-      // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
-      
-      const firebaseConfig = {
-        apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
-        authDomain: "authworria.firebaseapp.com",
-        databaseURL:
-        "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "authworria",
-        storageBucket: "authworria.appspot.com",
-        messagingSenderId: "635623599897",
-        appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
-        measurementId: "G-P84R1SCWJB",
-      };
-
-      const app = await firebase.initializeApp(firebaseConfig); // <- bruh this isnt working
-      
-      console.log(app);
-      console.log(firebase.app()); // yup ik thank me later
-      // const analytics = getAnalytics(app);
-      
-    
-    // check if the user is logged in
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (user) {
-        // User is signed in.
-        document.getElementById("loading").style.display = "none";
-
-        console.log(user)
-      } else {
-        // No user is signed in.
-        document.getElementById("loading").style.display = "none";
-        window.location.href = "/login.html";
-        console.log(user)
-      }
-    });
-})();
-
-
-
-
-
-    </script>
 </body>
 
 </html>
