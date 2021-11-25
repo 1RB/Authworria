@@ -3,6 +3,21 @@
     "rules": "database.rules.json"
   },
   "hosting": [{
+    "target": "main",
+    "public": "./www",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/temp/**"
+    ],
+    "rewrites": [{
+      "source": "**",
+      "destination": "/index.html"
+    }],
+    "cleanUrls": true
+  },
+  {
       "target": "blog",
       "public": "./blog-www",
       "ignore": [
@@ -11,21 +26,6 @@
         "**/node_modules/**",
         "**/temp/**"
       ],
-      "cleanUrls": true
-    },
-    {
-      "target": "main",
-      "public": "./www",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**",
-        "**/temp/**"
-      ],
-      "rewrites": [{
-        "source": "**",
-        "destination": "/index.html"
-      }],
       "cleanUrls": true
     }
   ]

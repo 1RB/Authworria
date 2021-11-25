@@ -60,7 +60,7 @@
             socket.emit("userIdent", { token: firebase.auth().currentUser.xa });
             //
           });
-          socket.on("userIdent", function (data) {
+          socket.on("userIdentRes", function (data) {
             if (data.err == "Token expired") {
               socket.disconnect();
               window.location.href = "./login.html";
@@ -76,7 +76,7 @@
                 }
             }, 30000);
           }
-          socket.on("lastUpdate", function (data) {
+          socket.on("lastUpdateRes", function (data) {
             if (!serverLastUpdate) {
                 serverLastUpdate = data.lastUpdateTime;
             }
@@ -87,16 +87,16 @@
               return window.location.reload(true);
             }
           });
-          socket.on("getUsrbySkt", function (data) {
+          socket.on("getUsrbySktRes", function (data) {
             console.log(data);
           });
           socket.on("disconnect", function () {
             console.log("Disconnected");
           });
-          socket.on("getUID", function (data) {
+          socket.on("getUIDRes", function (data) {
             console.log("getUID", data); // TODO: REMOVE LATER!!!!!!!!
           });
-          socket.on("changeStatus", function (data) {
+          socket.on("changeStatusRes", function (data) {
             console.log("changeStatus", data);
           });
           socket.on("usrChangeStatus", function (data) {
@@ -111,7 +111,7 @@
               imgEl.src = data.statusImg;
             }
           });
-          socket.on("getStatus", function (data) {
+          socket.on("getStatusRes", function (data) {
             console.log("getStatus", data);
             if (data.err) return;
             if (data.statusImg) {
@@ -124,7 +124,7 @@
               imgEl.src = data.statusImg;
             }
           });
-          socket.on("sendMessage", function (data) {
+          socket.on("sendMessageRes", function (data) {
             console.log(data);
             if (data.success) {
               console.log("Message sent");

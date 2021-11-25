@@ -1,173 +1,628 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/1788c719dd.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/app.css" />
+    <title>app</title>
+  </head>
+  <body>
+    <script
+      src="https://cdn.socket.io/4.4.0/socket.io.min.js"
+      integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
+      crossorigin="anonymous"
+    ></script>
+    <!-- type="module" -->
+    <script>
+      let socket = null;
+      let mySocketId = null;
+    </script>
+    <script>
+      //on window load
+      window.onload = () => {
+        (async () => {
+          // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://kit.fontawesome.com/1788c719dd.js" crossorigin="anonymous"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase-app.js"></script>-->
-  <!-- <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>-->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
-  <link rel="preconnect" href="https://fonts.gstatic.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="./css/app.css" />
-  <title>app</title>
-</head>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js";
-      (async () => {
-        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
-        
-        const firebaseConfig = {
-          apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
-          authDomain: "authworria.firebaseapp.com",
-          databaseURL:
-          "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "authworria",
-          storageBucket: "authworria.appspot.com",
-          messagingSenderId: "635623599897",
-          appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
-          measurementId: "G-P84R1SCWJB",
-        };
-  
-        const app = await firebase.initializeApp(firebaseConfig); // <- bruh this isnt working
-        
-        console.log(app);
-        console.log(firebase.app()); // yup ik thank me later
-        // const analytics = getAnalytics(app);
-        
-      
-      // check if the user is logged in
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-          // User is signed in.
-          document.getElementById("loading").style.display = "none";
-          document.getElementById("app").style.display = "block";
-          showUserDetail(user);
-          console.log(user)
-        } else {
-          // No user is signed in.
-          window.location.href = "./login.html";
-          console.log(user)
-        }
-      });
-        
-        function showUserDetail(user) {
-          document.getElementById("profile-img").innerHTML = `
-          <img id="pfp" src=${user.photoURL}></img>
-          `;
-        }
-  
-        document.getElementById("signout").addEventListener("click", function() {
-          firebase.auth().signOut();
-        });
-  
-        document.getElementsByClassName("dropbtn")[0].addEventListener("click", function() {
-          if (document.getElementById("dropdown-content").style.display == "block") {
-            document.getElementById("dropdown-content").style.display = "none";
-        } else {
-            document.getElementById("dropdown-content").style.display = "block";  
+          const firebaseConfig = {
+            apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
+            authDomain: "authworria.firebaseapp.com",
+            databaseURL:
+              "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "authworria",
+            storageBucket: "authworria.appspot.com",
+            messagingSenderId: "635623599897",
+            appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
+            measurementId: "G-P84R1SCWJB",
+          };
+
+          const app = await firebase.initializeApp(firebaseConfig);
+
+          let serverLastUpdate = null;
+          let serverUpdateTimer = null;
+          $(window).unload(function () {
+            socket.disconnect(); // Disconnects the user when the page is being closed
+          });
+          function launchSocket() {
+            socket.on("connect", async function () {
+              console.log("Connected, my socket id: %s", socket.id);
+              mySocketId = socket.id;
+              await firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
+              socket.emit("userIdent", {
+                // Identifies the user to the server using firebases token
+                token: firebase.auth().currentUser.xa,
+              });
+              //
+            });
+            socket.on("userIdentRes", function (data) {
+              // Executes when the server responds to the client indentification request
+              // Returns: {err: "<error message>"} if failed. Otherwise, returns {success: true, user: {uid: <users uid>, username: <username>, email: <email>, avatar: <avatar url>, status: <status>, statusImg: <status image url>}}
+              if (data.err == "Token expired") {
+                socket.disconnect(); // Disconnects the user when the token is expired
+                window.location.href = "./login.html"; // Redirects the user to the login page
+              }
+              console.log("UserIdent sent, response:", data);
+              socket.emit("getStatus", { imgloc: "/webchat-imgs/" }); // Requests the status of the user
+              checkUpdateStart(); // Starts the update checker
+            });
+            function checkUpdateStart() {
+              socket.emit("lastUpdate");
+              serverUpdateTimer = setInterval(() => {
+                if (!document.hidden) {
+                  socket.emit("lastUpdate");
+                }
+              }, 30000);
+            }
+            socket.on("lastUpdateRes", function (data) {
+              if (!serverLastUpdate) {
+                serverLastUpdate = data.lastUpdateTime;
+              }
+              if (serverLastUpdate != data.lastUpdateTime) {
+                console.log("Update from server:", data);
+                clearInterval(serverUpdateTimer);
+                socket.disconnect;
+                return window.location.reload(true);
+              }
+            });
+            socket.on("disconnect", function () {
+              // Executes when the client disconnects from the server
+              // Returns: nothing.
+              clearInterval(serverUpdateTimer);
+              console.log("Disconnected");
+            });
+            socket.on("changeStatusRes", function (data) {
+              // Executes when the server responds to clients request to change status
+              // Returns: {err: "<errormsg>"} if fails else returns {success: true, status: <new status>, statusImg: <status image location>}
+                document.getElementById("userstatuspfp").src = data.statusImg;
+              document.getElementById("userstatus").src = data.statusImg;
+            });
+            socket.on("usrChangeStatus", function (data) {
+              // Executes when a user changes their status.
+              // Returns: {uid: <user uid>, status: <new status>, statusImg: <status image location>}
+            });
+            socket.on("getStatusRes", function (data) {
+              // Executes when the server reponds to a client request to get the status of a user
+              // Returns: {err: "<errormsg>"} if fails else returns {uid: <user uid>, status: <user status>, success: true, statusImg: <status image location>}
+              document.getElementById("userstatuspfp").src = data.statusImg;
+              document.getElementById("userstatus").src = data.statusImg;
+              document.getElementById("transparentOutline").style.display = "block"
+
+            });
+            socket.on("sendMessageRes", function (data) {
+              // Executes when the server responds to a client request to send a message
+              // Returns: {err: "<errormsg>"} if fails else returns {success: true, message: <message>, sender: <sender>, senderUID: <senders UID>, senderImg: <senders pfp>, time: <time>}
+              if (data.err) return console.log(data.err);
+              document
+                .getElementById("temp-msg-" + data.messageId)
+                .classList.remove("pending");
+              document
+                .getElementById("temp-msg-" + data.messageId)
+                .removeAttribute("class");
+              document.getElementById("temp-msg-" + data.messageId).innerHTML = data.sender + ": " + data.message
+              document.getElementById("temp-msg-" + data.messageId).id =
+                "message-" + data.messageId;
+            
+            });
+            socket.on("receiveMessage", function (data) {
+              // Executes when the client receives a message
+              // Returns: {message: <message>, sender: <sender>, senderUID: <senders UID> senderImg: <senders pfp>, time: <time>}
+
+              document.getElementById("messageList").innerHTML +=
+                "<li id='messages-" +
+                data.messageId +
+                "'>" +
+                escapeString(data.sender) + ": " + data.message +
+                "</li>";
+              document.getElementById("messageList").innerHTML += "<br> ";
+              //scroll
+              document.getElementById("messageList").scrollTop =
+                document.getElementById("messageList").scrollHeight;
+            
+            });
+            socket.on("getMessagesRes", function (data) {
+              // Executes when the server responds to a client request to get messages in a certain limit
+              // Returns: {err: "<errormsg>"} if fails else returns {success: true, messages: [{message: <message>, sender: <sender>, senderImg: <senders pfp>, time: <time>}, ...]}
+            });
           }
-          
-        // if the dropdown is open, and you leave both dropdown-content and dropbtn, dropdown-content closes
-        document.getElementById("dropdown-content", "dropbtn").addEventListener("mouseleave", function() {
-          document.getElementById("dropdown-content").style.display = "none";
-        });
-        });
-  })();
-      </script>
 
-<body>
-  <div id="loading">
-    <svg class="tea" width="57" height="68" viewbox="0 0 37 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M27.0819 17H3.02508C1.91076 17 1.01376 17.9059 1.0485 19.0197C1.15761 22.5177 1.49703 29.7374 2.5 34C4.07125 40.6778 7.18553 44.8868 8.44856 46.3845C8.79051 46.79 9.29799 47 9.82843 47H20.0218C20.639 47 21.2193 46.7159 21.5659 46.2052C22.6765 44.5687 25.2312 40.4282 27.5 34C28.9757 29.8188 29.084 22.4043 29.0441 18.9156C29.0319 17.8436 28.1539 17 27.0819 17Z"
-        stroke="var(--secondary)" stroke-width="2"></path>
-      <path
-        d="M29 23.5C29 23.5 34.5 20.5 35.5 25.4999C36.0986 28.4926 34.2033 31.5383 32 32.8713C29.4555 34.4108 28 34 28 34"
-        stroke="var(--secondary)" stroke-width="2"></path>
-      <path id="teabag" fill="var(--secondary)" fill-rule="evenodd" clip-rule="evenodd"
-        d="M16 25V17H14V25H12C10.3431 25 9 26.3431 9 28V34C9 35.6569 10.3431 37 12 37H18C19.6569 37 21 35.6569 21 34V28C21 26.3431 19.6569 25 18 25H16ZM11 28C11 27.4477 11.4477 27 12 27H18C18.5523 27 19 27.4477 19 28V34C19 34.5523 18.5523 35 18 35H12C11.4477 35 11 34.5523 11 34V28Z">
-      </path>
-      <path id="steamL" d="M17 1C17 1 17 4.5 14 6.5C11 8.5 11 12 11 12" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round" stroke="var(--secondary)"></path>
-      <path id="steamR" d="M21 6C21 6 21 8.22727 19 9.5C17 10.7727 17 13 17 13" stroke="var(--secondary)"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-    </svg>
-  </div>
+          // check if the user is logged in
+          firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) {
+              // User is signed in.
+              firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
+              socket = await io("https://ws.inimicalpart.com:4242");
+              document.getElementById("loading").style.display = "none";
+              document.getElementById("app").style.display = "block";
 
-  <div id="app">
-    <div id="account">
-      <div class="dropdown">
-        <div id="profile-img" class="dropbtn"></div>
-        <div id="dropdown-content">
-          <a href="login.html">Account</a>
-          <a>Status</a>
-          <a href="login.html">
-            <div id="signout">Sign Out</div>
-          </a>
+              showUserDetail(user);
+              launchSocket();
+            } else {
+              // No user is signed in.
+              window.location.href = "./login.html";
+            }
+          });
+
+          function showUserDetail(user) {
+            document.getElementById("profile-img").innerHTML += `
+        <img id="pfp" src=${user.photoURL}></img>
+        `;
+            document.getElementById("profile-username").innerHTML += `
+        <span id="username"><b>${escapeString(user.displayName)}</b></span>
+        `;
+          }
+          function escapeString(str) {
+            // escape string for html
+            return str
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+          }
+
+          document
+            .getElementById("signout")
+            .addEventListener("click", function () {
+              firebase.auth().signOut();
+            });
+
+          window.document
+            .getElementsByClassName("dropbtn")[0]
+            .addEventListener("click", function () {
+              if (
+                document.getElementById("dropdown-content").style.display ==
+                "block"
+              ) {
+                document.getElementById("dropdown-content").style.display =
+                  "none";
+              } else {
+                document.getElementById("dropdown-content").style.display =
+                  "block";
+              }
+
+              // if the dropdown is open, and you leave both dropdown-content and dropbtn, dropdown-content closes
+              document
+                .getElementById("dropdown-content", "dropbtn")
+                .addEventListener("mouseleave", function () {
+                  document.getElementById("dropdown-content").style.display =
+                    "none";
+                });
+
+              document
+                .getElementById("statusChange")
+                .addEventListener("mouseleave", function () {
+                  document.getElementById("statusChange").style.display =
+                    "none";
+                });
+            });
+          document
+            .getElementById("statusBtn")
+            .addEventListener("click", function () {
+              document.getElementById("dropdown-content").style.display =
+                "none";
+              document.getElementById("statusChange").style.display = "block";
+            });
+
+          document
+            .getElementById("statusOnline")
+            .addEventListener("click", function () {
+              document.getElementById("statusChange").style.display = "none";
+              socket.emit("changeStatus", { status: "online" });
+            });
+
+          document
+            .getElementById("statusIdle")
+            .addEventListener("click", function () {
+              document.getElementById("statusChange").style.display = "none";
+              socket.emit("changeStatus", { status: "idle" });
+            });
+
+          document
+            .getElementById("statusDnd")
+            .addEventListener("click", function () {
+              document.getElementById("statusChange").style.display = "none";
+              socket.emit("changeStatus", { status: "dnd" });
+            });
+
+          document
+            .getElementById("statusInvisible")
+            .addEventListener("click", function () {
+              document.getElementById("statusChange").style.display = "none";
+              socket.emit("changeStatus", { status: "invisible" });
+            });
+
+          //on enter, send message
+          document
+            .getElementById("messageBox")
+            .addEventListener("keyup", function (event) {
+              if (event.keyCode === 13) {
+                event.preventDefault();
+                sendMessage();
+              }
+            });
+          function sendMessage() {
+            var message = document.getElementById("messageBox").value;
+            if (message != "") {
+              let randomId = makeID(16);
+              socket.emit("sendMessage", {
+                message: escapeString(message),
+                randomId: randomId,
+                sender: socket.id,
+              });
+
+              document.getElementById("messageList").innerHTML +=
+                "<li id='temp-msg-" +
+                randomId +
+                "' class='pending'>" +
+                escapeString(message) +
+                "</li>";
+              document.getElementById("messageList").innerHTML += "<br> ";
+              //scroll
+              document.getElementById("messageList").scrollTop =
+                document.getElementById("messageList").scrollHeight;
+              document.getElementById("messageBox").value = "";
+            }
+          }
+          function escapeString(str) {
+            // escape string for html
+            return str
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+          }
+          function makeID(length) {
+            var result = "";
+            var characters = "0123456789";
+            var charactersLength = characters.length;
+            for (var i = 0; i < length; i++) {
+              result += characters.charAt(
+                Math.floor(Math.random() * charactersLength)
+              );
+            }
+            return result;
+          }
+        })();
+      };
+    </script>
+    <div id="loading">
+      <svg
+        class="tea"
+        width="57"
+        height="68"
+        viewbox="0 0 37 48"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M27.0819 17H3.02508C1.91076 17 1.01376 17.9059 1.0485 19.0197C1.15761 22.5177 1.49703 29.7374 2.5 34C4.07125 40.6778 7.18553 44.8868 8.44856 46.3845C8.79051 46.79 9.29799 47 9.82843 47H20.0218C20.639 47 21.2193 46.7159 21.5659 46.2052C22.6765 44.5687 25.2312 40.4282 27.5 34C28.9757 29.8188 29.084 22.4043 29.0441 18.9156C29.0319 17.8436 28.1539 17 27.0819 17Z"
+          stroke="var(--secondary)"
+          stroke-width="2"
+        ></path>
+        <path
+          d="M29 23.5C29 23.5 34.5 20.5 35.5 25.4999C36.0986 28.4926 34.2033 31.5383 32 32.8713C29.4555 34.4108 28 34 28 34"
+          stroke="var(--secondary)"
+          stroke-width="2"
+        ></path>
+        <path
+          id="teabag"
+          fill="var(--secondary)"
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M16 25V17H14V25H12C10.3431 25 9 26.3431 9 28V34C9 35.6569 10.3431 37 12 37H18C19.6569 37 21 35.6569 21 34V28C21 26.3431 19.6569 25 18 25H16ZM11 28C11 27.4477 11.4477 27 12 27H18C18.5523 27 19 27.4477 19 28V34C19 34.5523 18.5523 35 18 35H12C11.4477 35 11 34.5523 11 34V28Z"
+        ></path>
+        <path
+          id="steamL"
+          d="M17 1C17 1 17 4.5 14 6.5C11 8.5 11 12 11 12"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke="var(--secondary)"
+        ></path>
+        <path
+          id="steamR"
+          d="M21 6C21 6 21 8.22727 19 9.5C17 10.7727 17 13 17 13"
+          stroke="var(--secondary)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+    </div>
+
+    <div id="app">
+      <div id="chat">
+        <div id="messages">
+          <ol id="messageList"></ol>
+        </div>
+        <div id="channelHeader">
+            <!-- <div id="channelName"> -->
+              <!-- <h4>#general</h4> -->
+            <!-- </div> -->
+        </div>
+        <input
+          type="text"
+          placeholder="Message #yourmom"
+          id="messageBox"
+          class="css-input"
+        />
+      </div>
+      <div id="account">
+        <div class="dropdown">
+          <div id="profileSection">
+            <div id="profile-img" class="dropbtn">
+              <div id="transparentOutline"></div>
+              <img id="userstatuspfp" />
+            </div>
+            <div id="profile-username"></div>
+          </div>
+          <div id="dropdown-content">
+            <a href="login.html">Account</a>
+            <a href="#" id="statusBtn">Status <img id="userstatus" /></a>
+            <a href="login.html">
+              <div id="signout">Sign Out</div>
+            </a>
+          </div>
+          <div id="statusChange">
+            <a href="#" id="statusOnline"
+              >Online <img src="/webchat-imgs/status_online.svg"
+            /></a>
+            <a href="#" id="statusIdle"
+              >Idle <img src="/webchat-imgs/status_idle.svg"
+            /></a>
+            <a href="#" id="statusDnd"
+              >Do not disturb <img src="/webchat-imgs/status_dnd.svg"
+            /></a>
+            <a href="#" id="statusInvisible"
+              >Invisible <img src="/webchat-imgs/status_offline.svg"
+            /></a>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  </div>
 
+    <style>
+      .pending {
+        color: gray;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #2f3136;
+      }
 
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #292B2F;
-    }
+      #pfp {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        /* border: 2px solid #000;*/
+      }
 
+      #pfp:hover {
+        cursor: pointer;
+        filter: brightness(0.8);
+      }
 
+      ::placeholder {
+        /* Chrome, Firefox, Opera, Safari 10.1+ */
+        color: #5e646e;
+        opacity: 1; /* Firefox */
+      }
 
-    #pfp {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      /* border: 2px solid #000;*/
-    }
+      :-ms-input-placeholder {
+        /* Internet Explorer 10-11 */
+        color: #5e646e;
+      }
 
-    #pfp:hover {
-      cursor: pointer;
-      filter: brightness(0.8);
-    }
+      ::-ms-input-placeholder {
+        /* Microsoft Edge */
+        color: #5e646e;
+      }
+      #username {
+        color: #dddddd;
+        left: 60px;
+        position: fixed;
+        margin-top: 10px;
+        font-size: 15px;
+      }
+      #dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #1a202c;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        border-radius: 5px;
+        border-top-width: 10px;
+        bottom: 60px;
+        left: 10px;
+      }
 
-    #dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: #1A202C;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-      z-index: 1;
-      border-radius: 5px;
-      border-top-width: 10px;
-      top: 60px;
-      left: 10px;
-    }
+      #dropdown-content a {
+        color: #fff;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        border-radius: 5px;
+      }
 
-    #dropdown-content a {
-      color: #fff;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-      border-radius: 5px;
-    }
+      #dropdown-content a:hover {
+        background-color: #12161f;
+      }
+      #userstatuspfp {
+        bottom: 10px;
+        position: fixed;
+        left: 30px;
+        z-index: 2;
+      }
+      #transparentOutline {
+        display: none;
+        background-color: #292b2f;
+        width: 12px;
+        height: 12px;
+        position: fixed;
+        bottom: 10px;
+        left: 36px;
+        z-index: 1;
+        border-radius: 10vh;
+      }
+      .css-input {
+        padding: 6px;
+        font-size: 17px;
+        border-width: 0px;
+        border-color: #292b2f;
+        background-color: #40444b;
+        color: #d9d9d9;
+        border-style: solid;
+        border-radius: 11px;
+        box-shadow: 0px 0px 0px rgba(66, 66, 66, 0.75);
+        text-shadow: 0px 0px 5px rgba(66, 66, 66, 0.75);
+      }
+      .css-input:focus {
+        outline: none;
+      }
 
-    #dropdown-content a:hover {
-      background-color: #12161f;
-    }
+      #statusChange {
+        display: none;
+        position: absolute;
+        background-color: #1a202c;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        border-radius: 5px;
+        border-top-width: 10px;
+        bottom: 60px;
+        left: 10px;
+      }
 
-    /* .dropdown:hover #dropdown-content {
+      #statusChange a {
+        color: #fff;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        border-radius: 5px;
+      }
+
+      #statusChange a:hover {
+        background-color: #12161f;
+      }
+      #chat {
+        /*middle responsive*/
+        position: fixed;
+        bottom: 0;
+        left: 18.9rem;
+        right: 0;
+        height: 100%;
+        background-color: #36393f;
+      }
+      #chat input {
+        text-indent: 10px;
+        /*middle center responsive*/
+        position: absolute;
+        width: 90%;
+        bottom: 0;
+        /* left: 0; */
+        left: 50%;
+        right: 25%;
+        margin-left: -45%;
+        margin-bottom: 10px;
+        height: 30px;
+      }
+
+      #messages {
+        position: fixed;
+
+        top: 0;
+        width: 100%;
+        left: 18.9rem;
+
+        height: calc(100% - 52px);
+      }
+
+      #messageList {
+        overflow-x: auto;
+        white-space: nowrap;
+        color: white;
+        position: fixed;
+        margin-top: 70px;
+        height: calc(100% - 113px);
+        width: 100%;
+      }
+      #messageList li {
+        display: inline;
+      }
+      #channelHeader {
+        position: fixed;
+        display:flex;
+        top: 0;
+        width: 100%;
+        left: 18.9rem;
+        height: 52px;
+        background-color: #36393f;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        padding-left: 10px;
+        padding-top: 10px;
+        border-bottom: 1px solid #28292c;
+      }
+      @media screen and (max-width: 420px) {
+        #chat {
+          /*middle responsive*/
+          position: fixed;
+          bottom: 0;
+          left: 100%;
+          right: 0;
+          height: 100%;
+          background-color: #36393f;
+        }
+      }
+      #profileSection {
+        background-color: #292b2f;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+
+        width: 18.9rem;
+        height: 60px;
+      }
+      /* .dropdown:hover #dropdown-content {
       display: block;
     }*/
-  </style>
-
-</body>
-
+    </style>
+  </body>
 </html>

@@ -7,44 +7,50 @@
     <title>DISCORD LOGIN</title>
   </head>
   <body>
+      <p id="status"></p>
     <!-- jquery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script>
-      (async () => {
-        //get code from search params
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
+        setTimeout(()=>{
+
+            (async () => {
+                //get code from search params
+                const params = new URLSearchParams(window.location.search);
+                const code = params.get("code");
         if (!code) {
-          return;
+          return window.close();
         }
+        document.getElementById("status").innerHTML = "Working on it... might take some time";
         //post request
         let clntId = "905004053199728670";
         let clntSec = "992X1ewLOBJzeZdneXGeUn6vBuTrJIiE"; // TODO: Hide this by implanting in inimicalpart.com
         let redirect_uri = null;
         if (window.location.hostname === "localhost") {
-          redirect_uri = "http://localhost:5000/api/discordlogin";
+            redirect_uri = "http://localhost:5000/api/discordlogin";
         } else {
           redirect_uri = "https://authworria.com/api/discordlogin";
         }
         $.ajax({
-          url: "https://discord.com/api/oauth2/token",
+            url: "https://discord.com/api/oauth2/token",
           type: "POST",
           data: {
-            client_id: clntId,
-            client_secret: clntSec,
+              client_id: clntId,
+              client_secret: clntSec,
             grant_type: "authorization_code",
             code: code,
             redirect_uri: redirect_uri,
-          },
-          success: function (data) {
+        },
+        success: function (data) {
             //redirect to /login with access token and refreshtoken in search params
             window.location.href = "/api/discordlogin?access_token=" + data.access_token + "&refresh_token=" + data.refresh_token;
-          },
+        },
           error: function (data) {
             console.log(data);
-          },
+        },
         });
-      })();
+    })();
+},50)
     </script>
   </body>
-</html>
+  </html>
+  
