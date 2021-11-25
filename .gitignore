@@ -67,3 +67,6 @@ node_modules/
 
 # temp folders
 **/temp/**
+
+# snippet.html
+snippet.html
