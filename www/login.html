@@ -179,6 +179,10 @@
         .getElementById("githubsignin")
         .addEventListener("click", GithubLogin);
 
+      document
+        .getElementById("githubsignup")
+        .addEventListener("click", GithubLogin);
+
       function GithubLogin() {
         const provider = new firebase.auth.GithubAuthProvider();
         firebase
