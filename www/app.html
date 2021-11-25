@@ -82,14 +82,12 @@
       if (user) {
         // User is signed in.
         document.getElementById("loading").style.display = "none";
-        document.getElementById("notloggedin").style.display = "none";
-        document.getElementById("loggedin").style.display = "block";
+
         console.log(user)
       } else {
         // No user is signed in.
         document.getElementById("loading").style.display = "none";
-        document.getElementById("notloggedin").style.display = "block";
-        document.getElementById("loggedin").style.display = "none";
+        window.location.href = "/login.html";
         console.log(user)
       }
     });

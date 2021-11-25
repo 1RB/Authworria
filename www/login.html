@@ -1,91 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script
-      src="https://kit.fontawesome.com/1788c719dd.js"
-      crossorigin="anonymous"
-    ></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase-app.js"></script>-->
-    <!-- <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
-    <!-- <script>console.clear()</script> -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./css/signup.css" />
-    <title>Log in</title>
-  </head>
-  <!-- did you uncomment the index? yeah i didnt initialize the app yeah its commented under index.html-->
-  <!-- Uncaught FirebaseError: Firebase: No Firebase App '[DEFAULT]' has been created - call Firebase App.initializeApp() (app/no-app). -->
 
-  <body>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script type="module">
-      const debugLog = console.info;
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js";
-      (async () => {
-        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://kit.fontawesome.com/1788c719dd.js" crossorigin="anonymous"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase-app.js"></script>-->
+  <!-- <script src="https://www.gstatic.com/firebasejs/ui/6.0.0/firebase-ui-auth.js"></script>-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+  <!-- <script>console.clear()</script> -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./css/signup.css" />
+  <title>Log in</title>
+</head>
+<!-- did you uncomment the index? yeah i didnt initialize the app yeah its commented under index.html-->
+<!-- Uncaught FirebaseError: Firebase: No Firebase App '[DEFAULT]' has been created - call Firebase App.initializeApp() (app/no-app). -->
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
-          authDomain: "authworria.firebaseapp.com",
-          databaseURL:
-            "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "authworria",
-          storageBucket: "authworria.appspot.com",
-          messagingSenderId: "635623599897",
-          appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
-          measurementId: "G-P84R1SCWJB",
-        };
+<body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script type="module">
+    const debugLog = console.info;
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-app.js";
+    (async () => {
+      // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
 
-        const app = await firebase.initializeApp(firebaseConfig); // <- bruh this isnt working
+      const firebaseConfig = {
+        apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
+        authDomain: "authworria.firebaseapp.com",
+        databaseURL:
+          "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "authworria",
+        storageBucket: "authworria.appspot.com",
+        messagingSenderId: "635623599897",
+        appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
+        measurementId: "G-P84R1SCWJB",
+      };
 
-        document
-          .getElementById("googlesignin")
-          .addEventListener("click", GoogleLogin);
+      const app = await firebase.initializeApp(firebaseConfig);
 
-        document
-          .getElementById("googlesignup")
-          .addEventListener("click", GoogleLogin);
+      document
+        .getElementById("googlesignin")
+        .addEventListener("click", GoogleLogin);
 
-        //discord sign in and sign up
-        document
-          .getElementById("discordsignin")
-          .addEventListener("click", DiscordLogin);
+      document
+        .getElementById("googlesignup")
+        .addEventListener("click", GoogleLogin);
 
-        document
-          .getElementById("discordsignup")
-          .addEventListener("click", DiscordLogin); //TODO: CHANGE TO SIGNUP MAYBE
+      //discord sign in and sign up
+      document
+        .getElementById("discordsignin")
+        .addEventListener("click", DiscordLogin);
 
-        document
-          .getElementById("signout")
-          .addEventListener("click", GoogleLogout);
+      document
+        .getElementById("discordsignup")
+        .addEventListener("click", DiscordLogin); //TODO: CHANGE TO SIGNUP MAYBE
 
-        function GoogleLogin() {
-          var provider = new firebase.auth.GoogleAuthProvider();
-          firebase
-            .auth()
-            .signInWithPopup(provider)
-            .then((res) => {
-              console.log(res.user);
-              document.getElementById("dashboard").style.display = "block";
-              document.getElementById("loginscreen").style.display = "none";
-              showUserDetails(res.user);
-            })
-            .catch((e) => {
-              console.log(e);
-            });
+      document
+        .getElementById("signout")
+        .addEventListener("click", GoogleLogout);
+
+      function GoogleLogin() {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        firebase
+          .auth()
+          .signInWithPopup(provider)
+          .then((res) => {
+            console.log(res.user);
+            document.getElementById("dashboard").style.display = "block";
+            document.getElementById("loginscreen").style.display = "none";
+            showUserDetails(res.user);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+      }
+
+      function showUserDetails(user) {
+        var today = new Date();
+        var hour = today.getHours();
+        var greeting = "";
+        if (hour < 12) {
+          greeting = "Good Morning";
+        } else if (hour < 18) {
+          greeting = "Good Afternoon";
+        } else {
+          greeting = "Good Evening";
         }
 
-        function showUserDetails(user) {
-          var today = new Date();
-          var hour = today.getHours();
-          var greeting = "";
+        if (hour != today.getHours()) {
+          today = new Date();
+          hour = today.getHours();
           if (hour < 12) {
             greeting = "Good Morning";
           } else if (hour < 18) {
@@ -93,296 +100,336 @@
           } else {
             greeting = "Good Evening";
           }
-          document.getElementById("userinfo").innerHTML = `
+        }
+        document.getElementById("userinfo").innerHTML = `
               <img id="signed-in-pfp" src="${user.photoURL}"></img>
-              <h2 id="signed-in-username">${greeting}, ${user.displayName
-            .split(" ")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")}</h2>
-                <p id="signed-in-email">${user.email}</p>
-                <button id="app">➡️ Ready to begin? ⬅️</button>
-            `;
+              <h2 id="signed-in-username">👋 ${greeting}, ${user.displayName.split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")}</h2>
+        <p id="signed-in-email">${user.email}</p>
+        <button id="app">➡️ Ready to begin? ⬅️</button>
+        `
+        if (user.email == null) {
+          document.getElementById("signed-in-email").innerHTML = `
+          <p id="nullemail">You have not provided an email address. Please update your profile.</p>
+          `
+        }
+        document.getElementById("app").addEventListener("click", goToApp);
+        function goToApp() {
+        //   window.location.href = "./app.html";
+        // redirect to /webchat with cookies
+        window.location.href = "./webchat.html";
+
         }
 
-        function isUserSignedIn() {
-          firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-              debugLog("[LOGINHANDLER] Valid user session found.");
-              document.getElementById("loginscreen").style.display = "none";
-              document.getElementById("dashboard").style.display = "block";
-              showUserDetails(user);
+
+      }
+      function isUserSignedIn() {
+        firebase.auth().onAuthStateChanged(user => {
+          if (user) {
+            debugLog("[LOGINHANDLE] A valid user session was found.");
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('loginscreen').style.display = "none"
+            document.getElementById('dashboard').style.display = "block"
+            showUserDetails(user)
+          } else {
+            document.getElementById('loginscreen').style.display = "block"
+            document.getElementById('loading').style.display = 'none';
+          }
+        })
+      }
+
+      function startTime() {
+        // use the element id "clock" to display the time
+        var today = new Date();
+        var h = today.getHours();
+        var m = today.getMinutes();
+        var s = today.getSeconds();
+        m = checkTime(m);
+        s = checkTime(s);
+        // am or pm
+        var ampm = h >= 12 ? 'PM' : 'AM';
+        // 12hr format
+        h = h % 12;
+        h = h ? h : 12; // the hour '0' should be '12'
+        document.getElementById('clock').innerHTML = h + ":" + m + " " + ampm;
+        var t = setTimeout(startTime, 500);
+      }
+
+      function checkTime(i) {
+        if (i < 10) {
+          i = "0" + i
+        };
+        return i;
+      }
+
+      function GoogleLogout() {
+        firebase
+          .auth()
+          .signOut()
+          .then(function () {
+            // Sign-out successful.
+            debugLog("[AUTH] User signed out.");
+            document.getElementById("dashboard").style.display = "none";
+            document.getElementById("loginscreen").style.display = "block";
+          })
+          .catch(function (error) {
+            // An error happened.
+          });
+      }
+
+      document.getElementById("dashboard").style.display = "none";
+
+      document
+        .getElementById("githubsignin")
+        .addEventListener("click", GithubLogin);
+
+      function GithubLogin() {
+        const provider = new firebase.auth.GithubAuthProvider();
+        firebase
+          .auth()
+          .signInWithPopup(provider)
+          .then((result) => {
+            // This gives you a GitHub Access Token. You can use it to access the GitHub API.
+            var token = result.credential.accessToken;
+            // The signed-in user info.
+            var user = result.user;
+            console.log(user, token);
+          })
+          .catch((error) => {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            console.log(errorCode, errorMessage);
+            if (
+              errorCode === "auth/account-exists-with-different-credential"
+            ) {
+              debugLog(
+                "[AUTH] User already exists with different credential."
+              );
+              alert(
+                "You have already signed up with a different auth provider for that email."
+              );
             } else {
+              console.error(error);
             }
           });
-        }
+      }
 
-        function GoogleLogout() {
-          firebase
-            .auth()
-            .signOut()
-            .then(function () {
-              // Sign-out successful.
-              debugLog("[AUTH] User signed out.");
-              document.getElementById("dashboard").style.display = "none";
-              document.getElementById("loginscreen").style.display = "block";
-            })
-            .catch(function (error) {
-              // An error happened.
-            });
-        }
 
-        document.getElementById("dashboard").style.display = "none";
-
-        document
-          .getElementById("githubsignin")
-          .addEventListener("click", GithubLogin);
-
-        function GithubLogin() {
-          const provider = new firebase.auth.GithubAuthProvider();
-          firebase
-            .auth()
-            .signInWithPopup(provider)
-            .then((result) => {
-              // This gives you a GitHub Access Token. You can use it to access the GitHub API.
-              var token = result.credential.accessToken;
-              // The signed-in user info.
-              var user = result.user;
-              console.log(user, token);
-            })
-            .catch((error) => {
-              // Handle Errors here.
-              var errorCode = error.code;
-              var errorMessage = error.message;
-              console.log(errorCode, errorMessage);
+      function DiscordLogin() {
+        debugLog("[DISCORDLOGIN] Login for DISCORD started.");
+        try {
+          let discordwindow = null;
+          //check if running on localhost
+          if (window.location.hostname == "localhost") {
+            debugLog(
+              "[DISCORDLOGIN] Running on localhost, trying to open discord OAuth2 window."
+            );
+            discordwindow = window.open(
+              "https://discord.com/api/oauth2/authorize?client_id=905004053199728670&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fapi%2Fdiscordlogin&response_type=code&scope=identify%20email",
+              "_blank",
+              "toolbar=yes,scrollbars=yes,resizable=yes,width=502,height=722"
+            );
+            debugLog(
+              "[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion..."
+            );
+          } else {
+            debugLog(
+              "[DISCORDLOGIN] Running in production mode, trying to open discord OAuth2 window."
+            );
+            discordwindow = window.open(
+              "https://discord.com/api/oauth2/authorize?client_id=905004053199728670&redirect_uri=https%3A%2F%2Fauthworria.com%2Fapi%2Fdiscordlogin&response_type=code&scope=email%20identify",
+              "_blank",
+              "toolbar=yes,scrollbars=yes,resizable=yes,width=502,height=722"
+            );
+            debugLog(
+              "[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion..."
+            );
+          }
+          //check if window exists
+          if (discordwindow == null) {
+            debugLog("[DISCORDLOGIN] Discord OAuth2 window failed to open.");
+            return alert("Please disable your pop-up blocker and try again.");
+          }
+          let loginInterval = setInterval(function () {
+            if (discordwindow.closed) {
+              debugLog(
+                "[DISCORDLOGIN] Discord OAuth2 window closed without completion."
+              );
+              clearInterval(loginInterval);
+              return failDiscordLogin("user-exit");
+            }
+            try {
               if (
-                errorCode === "auth/account-exists-with-different-credential"
+                discordwindow.location.search.includes("access_token") &&
+                discordwindow.location.search.includes("refresh_token")
               ) {
-                debugLog(
-                  "[AUTH] User already exists with different credential."
+                let params = new URLSearchParams(
+                  discordwindow.location.search
                 );
-                alert(
-                  "You have already signed up with a different auth provider for that email."
-                );
-              } else {
-                console.error(error);
-              }
-            });
-        }
-
-        isUserSignedIn();
-
-        function DiscordLogin() {
-          debugLog("[DISCORDLOGIN] Login for DISCORD started.");
-          try {
-            let discordwindow = null;
-            //check if running on localhost
-            if (window.location.hostname == "localhost") {
-              debugLog(
-                "[DISCORDLOGIN] Running on localhost, trying to open discord OAuth2 window."
-              );
-              discordwindow = window.open(
-                "https://discord.com/api/oauth2/authorize?client_id=905004053199728670&redirect_uri=http%3A%2F%2Flocalhost%3A5000%2Fapi%2Fdiscordlogin&response_type=code&scope=identify%20email",
-                "_blank",
-                "toolbar=yes,scrollbars=yes,resizable=yes,width=502,height=722"
-              );
-              debugLog(
-                "[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion..."
-              );
-            } else {
-              debugLog(
-                "[DISCORDLOGIN] Running in production mode, trying to open discord OAuth2 window."
-              );
-              discordwindow = window.open(
-                "https://discord.com/api/oauth2/authorize?client_id=905004053199728670&redirect_uri=https%3A%2F%2Fauthworria.com%2Fapi%2Fdiscordlogin&response_type=code&scope=email%20identify",
-                "_blank",
-                "toolbar=yes,scrollbars=yes,resizable=yes,width=502,height=722"
-              );
-              debugLog(
-                "[DISCORDLOGIN] Discord OAuth2 window opened. Awaiting completion..."
-              );
-            }
-            //check if window exists
-            if (discordwindow == null) {
-              debugLog("[DISCORDLOGIN] Discord OAuth2 window failed to open.");
-              return alert("Please disable your pop-up blocker and try again.");
-            }
-            let loginInterval = setInterval(function () {
-              if (discordwindow.closed) {
-                debugLog(
-                  "[DISCORDLOGIN] Discord OAuth2 window closed without completion."
-                );
+                let access_token = params.get("access_token");
+                let refresh_token = params.get("refresh_token");
+                debugLog("[DISCORDLOGIN] Discord OAuth2 completed.");
+                discordwindow.close();
                 clearInterval(loginInterval);
-                return failDiscordLogin("user-exit");
+                debugLog("[DISCORDLOGIN] Passing token to LOGINHANDLER.");
+                handleLogin("discord", {
+                  access_token: access_token,
+                  refresh_token: refresh_token,
+                });
               }
-              try {
-                if (
-                  discordwindow.location.search.includes("access_token") &&
-                  discordwindow.location.search.includes("refresh_token")
-                ) {
-                  let params = new URLSearchParams(
-                    discordwindow.location.search
-                  );
-                  let access_token = params.get("access_token");
-                  let refresh_token = params.get("refresh_token");
-                  debugLog("[DISCORDLOGIN] Discord OAuth2 completed.");
-                  discordwindow.close();
-                  clearInterval(loginInterval);
-                  debugLog("[DISCORDLOGIN] Passing token to LOGINHANDLER.");
-                  handleLogin("discord", {
-                    access_token: access_token,
-                    refresh_token: refresh_token,
-                  });
-                }
-              } catch (e) {
-                if (e instanceof DOMException) {
-                  return;
-                }
-              }
-            }, 50);
-
-            function failDiscordLogin(reason) {
-              if (reason == "user-exit") {
-                console.log(
-                  "User exited the window without finished authentication."
-                );
+            } catch (e) {
+              if (e instanceof DOMException) {
                 return;
               }
             }
-            async function handleLogin(service, data) {
-              debugLog("[LOGINHANDLER| Handling login...");
-              if (service == "discord") {
-                debugLog("[LOGINHANDLER| Handling login for DISCORD");
-                //check if data is valid (contains access_token and refresh_token)
-                if (data.access_token && data.refresh_token) {
-                  debugLog("[LOGINHANDLER| Data is valid");
-                  let token = null;
-                  // use jquery to make a post request to the discord account endpoint with access_token and keep the output in a variable called "usr"
-                  let usr = null;
-                  await $.ajax({
-                    url: "https://discord.com/api/users/@me",
-                    type: "GET",
-                    headers: {
-                      Authorization: "Bearer " + data.access_token,
-                    },
-                    success: function (usrd) {
-                      usr = usrd;
-                    },
-                    error: function (err) {
-                      console.log(err);
-                    },
-                  });
-                  //check if usr is valid
-                  if (usr) {
-                    debugLog("[LOGINHANDLER| USR information received.");
-                    if (usr.id && usr.username) {
-                      debugLog("[LOGINHANDLER| USR information is valid.");
-                      //make request to https://inimicalpart.com/api/v1/genTokenF with the usr var using jquery
-                      $.ajax({
-                        url: "https://api.inimicalpart.com/v1/genTokenF",
-                        type: "POST",
-                        data: {
-                          usr: JSON.stringify(usr),
-                        },
-                        success: function (res) {
-                          //check if res is valid
-                          if (res.errormsg == "User doesnt exist.") {
-                            debugLog(
-                              "[LOGINHANDLER| User doesn't exist. Creating..."
-                            );
-                            // usr doesnt exist
-                            // make request to https://inimicalpart.com/api/v1/genTokenFS with the usr var using jquery
-                            $.ajax({
-                              url: "https://api.inimicalpart.com/v1/genTokenFS",
-                              type: "POST",
-                              data: {
-                                usr: JSON.stringify(usr),
-                              },
-                              success: function (res) {
-                                console.log(res);
-                                //check if res is valid
-                                if (res.code == 200) {
-                                  debugLog(
-                                    "[LOGINHANDLER| USER created and TOKEN acquired."
-                                  );
-                                  finishWithTKN(res.token);
-                                }
-                              },
-                              error: function (err) {
-                                console.log(err);
-                              },
-                            });
-                          } else if (res.code == 200) {
-                            debugLog(
-                              "[LOGINHANDLER| TOKEN acquired for USER."
-                            );
-                            finishWithTKN(res.token);
-                          }
-                        },
-                        error: function (err) {
-                          console.log(err);
-                          //check if res is valid
-                          if (
-                            err.responseJSON.errormsg == "User doesnt exist."
-                          ) {
-                            debugLog(
-                              "[LOGINHANDLER| USER doesn't exist. Creating..."
-                            );
-                            // usr doesnt exist
-                            // make request to https://inimicalpart.com/api/v1/genTokenFS with the usr var using jquery
-                            $.ajax({
-                              url: "https://api.inimicalpart.com/v1/genTokenFS",
-                              type: "POST",
-                              data: {
-                                usr: JSON.stringify(usr),
-                              },
-                              success: function (res) {
-                                console.log(res);
-                                //check if res is valid
-                                if (res.code == 200) {
-                                  debugLog(
-                                    "[LOGINHANDLER| USER created and AUTHKEY acquired."
-                                  );
-                                  finishWithTKN(res.token);
-                                }
-                              },
-                              error: function (err) {
-                                console.log(err); // email maybe already exists, firebase error code will be in err.responseJSON.detailedErr.code
-                              },
-                            });
-                          }
-                        },
-                      });
-                    }
-                  }
-                  function finishWithTKN(authkey) {
-                    debugLog("[LOGINHANDLER] Trying to log in with AUTHKEY...");
-                    if (authkey) {
-                      firebase
-                        .auth()
-                        .signInWithCustomToken(authkey)
-                        .then(function () {
-                          // Sign-in successful.
-                          console.log(
-                            "Successfully signed in as: " +
-                              firebase.auth().currentUser.displayName
+          }, 50);
+
+          function failDiscordLogin(reason) {
+            if (reason == "user-exit") {
+              console.log(
+                "User exited the window without finished authentication."
+              );
+              return;
+            }
+          }
+          async function handleLogin(service, data) {
+            debugLog("[LOGINHANDLER| Handling login...");
+            if (service == "discord") {
+              debugLog("[LOGINHANDLER| Handling login for DISCORD");
+              //check if data is valid (contains access_token and refresh_token)
+              if (data.access_token && data.refresh_token) {
+                debugLog("[LOGINHANDLER| Data is valid");
+                let token = null;
+                // use jquery to make a post request to the discord account endpoint with access_token and keep the output in a variable called "usr"
+                let usr = null;
+                await $.ajax({
+                  url: "https://discord.com/api/users/@me",
+                  type: "GET",
+                  headers: {
+                    Authorization: "Bearer " + data.access_token,
+                  },
+                  success: function (usrd) {
+                    usr = usrd;
+                  },
+                  error: function (err) {
+                    console.log(err);
+                  },
+                });
+                //check if usr is valid
+                if (usr) {
+                  debugLog("[LOGINHANDLER| USR information received.");
+                  if (usr.id && usr.username) {
+                    debugLog("[LOGINHANDLER| USR information is valid.");
+                    //make request to https://inimicalpart.com/api/v1/genTokenF with the usr var using jquery
+                    $.ajax({
+                      url: "https://api.inimicalpart.com/v1/genTokenF",
+                      type: "POST",
+                      data: {
+                        usr: JSON.stringify(usr),
+                      },
+                      success: function (res) {
+                        //check if res is valid
+                        if (res.errormsg == "User doesnt exist.") {
+                          debugLog(
+                            "[LOGINHANDLER| User doesn't exist. Creating..."
                           );
-                        })
-                        .catch(function (error) {
-                          // Handle Errors here.
-                          var errorCode = error.code;
-                          var errorMessage = error.message;
-                          console.log(errorCode, errorMessage);
-                        });
-                    }
+                          // usr doesnt exist
+                          // make request to https://inimicalpart.com/api/v1/genTokenFS with the usr var using jquery
+                          $.ajax({
+                            url: "https://api.inimicalpart.com/v1/genTokenFS",
+                            type: "POST",
+                            data: {
+                              usr: JSON.stringify(usr),
+                            },
+                            success: function (res) {
+                              console.log(res);
+                              //check if res is valid
+                              if (res.code == 200) {
+                                debugLog(
+                                  "[LOGINHANDLER| USER created and TOKEN acquired."
+                                );
+                                finishWithTKN(res.token);
+                              }
+                            },
+                            error: function (err) {
+                              console.log(err);
+                            },
+                          });
+                        } else if (res.code == 200) {
+                          debugLog(
+                            "[LOGINHANDLER| TOKEN acquired for USER."
+                          );
+                          finishWithTKN(res.token);
+                        }
+                      },
+                      error: function (err) {
+                        console.log(err);
+                        //check if res is valid
+                        if (
+                          err.responseJSON.errormsg == "User doesnt exist."
+                        ) {
+                          debugLog(
+                            "[LOGINHANDLER| USER doesn't exist. Creating..."
+                          );
+                          // usr doesnt exist
+                          // make request to https://inimicalpart.com/api/v1/genTokenFS with the usr var using jquery
+                          $.ajax({
+                            url: "https://api.inimicalpart.com/v1/genTokenFS",
+                            type: "POST",
+                            data: {
+                              usr: JSON.stringify(usr),
+                            },
+                            success: function (res) {
+                              console.log(res);
+                              //check if res is valid
+                              if (res.code == 200) {
+                                debugLog(
+                                  "[LOGINHANDLER| USER created and AUTHKEY acquired."
+                                );
+                                finishWithTKN(res.token);
+                              }
+                            },
+                            error: function (err) {
+                              console.log(err); // email maybe already exists, firebase error code will be in err.responseJSON.detailedErr.code
+                            },
+                          });
+                        }
+                      },
+                    });
+                  }
+                }
+                function finishWithTKN(authkey) {
+                  debugLog("[LOGINHANDLER] Trying to log in with AUTHKEY...");
+                  if (authkey) {
+                    firebase
+                      .auth()
+                      .signInWithCustomToken(authkey)
+                      .then(function () {
+                        // Sign-in successful.
+                        console.log(
+                          "Successfully signed in as: " +
+                          firebase.auth().currentUser.displayName
+                        );
+                      })
+                      .catch(function (error) {
+                        // Handle Errors here.
+                        var errorCode = error.code;
+                        var errorMessage = error.message;
+                        console.log(errorCode, errorMessage);
+                      });
                   }
                 }
               }
             }
-          } catch (e) {
-            console.log(e);
           }
+        } catch (e) {
+          console.log(e);
         }
-      })();
+      }
+      isUserSignedIn();
+      startTime();
+    })();
+
 
       // var provider = new firebase.auth.GoogleAuthProvider();
       // firebase.auth().signInWithPopup(provider).then(function (result) {
@@ -397,234 +444,333 @@
       // }
 
       //why is this inside the onclick function
-    </script>
-    <div id="loginscreen">
-      <div class="container">
-        <div class="container__forms">
-          <div class="form">
-            <form action="" class="form__sign-in">
-              <h2 class="form__title">Sign In</h2>
-              <div class="form__input-field">
-                <i class="fas fa-user"></i>
-                <input
-                  id="signinusername"
-                  type="text"
-                  placeholder="Username"
-                  required
-                />
-              </div>
-              <div class="form__input-field">
-                <i class="fas fa-lock"></i>
-                <input
-                  id="signinpassword"
-                  type="password"
-                  placeholder="Password"
-                  required
-                />
-              </div>
-              <input class="form__submit" type="submit" value="Login" />
-              <p class="form__social-text">Or Sign in with your social media</p>
-              <div class="form__social-media">
-                <a style="cursor:poiner" class="form__social-icons">
-                  <i class="fab fa-firefox"></i>
-                </a>
-                <a id="discordsignin" style="cursor:poiner" class="form__social-icons">
-                  <i class="fab fa-discord"></i>
-                </a>
-                <a id="googlesignin" style="cursor:poiner" class="form__social-icons">
-                  <i class="fab fa-google"></i>
-                </a>
-                <a id="githubsignin" style="cursor:poiner" class="form__social-icons">
-                  <i class="fab fa-github"></i>
-                </a>
-              </div>
-            </form>
+  </script>
+  <div id="loading">
+    <div id="loading-container">
+      <svg class="tea" width="57" height="68" viewbox="0 0 37 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M27.0819 17H3.02508C1.91076 17 1.01376 17.9059 1.0485 19.0197C1.15761 22.5177 1.49703 29.7374 2.5 34C4.07125 40.6778 7.18553 44.8868 8.44856 46.3845C8.79051 46.79 9.29799 47 9.82843 47H20.0218C20.639 47 21.2193 46.7159 21.5659 46.2052C22.6765 44.5687 25.2312 40.4282 27.5 34C28.9757 29.8188 29.084 22.4043 29.0441 18.9156C29.0319 17.8436 28.1539 17 27.0819 17Z"
+          stroke="var(--secondary)" stroke-width="2"></path>
+        <path
+          d="M29 23.5C29 23.5 34.5 20.5 35.5 25.4999C36.0986 28.4926 34.2033 31.5383 32 32.8713C29.4555 34.4108 28 34 28 34"
+          stroke="var(--secondary)" stroke-width="2"></path>
+        <path id="teabag" fill="var(--secondary)" fill-rule="evenodd" clip-rule="evenodd"
+          d="M16 25V17H14V25H12C10.3431 25 9 26.3431 9 28V34C9 35.6569 10.3431 37 12 37H18C19.6569 37 21 35.6569 21 34V28C21 26.3431 19.6569 25 18 25H16ZM11 28C11 27.4477 11.4477 27 12 27H18C18.5523 27 19 27.4477 19 28V34C19 34.5523 18.5523 35 18 35H12C11.4477 35 11 34.5523 11 34V28Z">
+        </path>
+        <path id="steamL" d="M17 1C17 1 17 4.5 14 6.5C11 8.5 11 12 11 12" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round" stroke="var(--secondary)"></path>
+        <path id="steamR" d="M21 6C21 6 21 8.22727 19 9.5C17 10.7727 17 13 17 13" stroke="var(--secondary)"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </div>
+  </div>
 
-            <form action="" class="form__sign-up">
-              <h2 class="form__title">Sign Up</h2>
-              <div class="form__input-field">
-                <i class="fas fa-user"></i>
-                <input type="text" placeholder="Username" required />
-              </div>
-              <div class="form__input-field">
-                <i class="fas fa-envelope"></i>
-                <input type="text" placeholder="Email" required />
-              </div>
-              <div class="form__input-field">
-                <i class="fas fa-lock"></i>
-                <input type="password" placeholder="Password" required />
-              </div>
+  <div id="loginscreen">
+    <div class="container">
+      <div class="container__forms">
+        <div class="form">
+          <form action="" class="form__sign-in">
+            <h2 class="form__title">Sign In</h2>
+            <div class="form__input-field">
+              <i class="fas fa-user"></i>
+              <input id="signinusername" type="text" placeholder="Username" required />
+            </div>
+            <div class="form__input-field">
+              <i class="fas fa-lock"></i>
+              <input id="signinpassword" type="password" placeholder="Password" required />
+            </div>
+            <input class="form__submit" type="submit" value="Login" />
+            <p class="form__social-text">Or Sign in with your social media</p>
+            <div class="form__social-media">
+              <a style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-firefox"></i>
+              </a>
+              <a id="discordsignin" style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-discord"></i>
+              </a>
+              <a id="googlesignin" style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-google"></i>
+              </a>
+              <a id="githubsignin" style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-github"></i>
+              </a>
+            </div>
+          </form>
 
-              <input class="form__submit" type="submit" value="Sign Up" />
+          <form action="" class="form__sign-up">
+            <h2 class="form__title">Sign Up</h2>
+            <div class="form__input-field">
+              <i class="fas fa-user"></i>
+              <input type="text" placeholder="Username" required />
+            </div>
+            <div class="form__input-field">
+              <i class="fas fa-envelope"></i>
+              <input type="text" placeholder="Email" required />
+            </div>
+            <div class="form__input-field">
+              <i class="fas fa-lock"></i>
+              <input type="password" placeholder="Password" required />
+            </div>
 
-              <p class="form__social-text">Or Sign Up with your social media</p>
-              <div class="form__social-media">
-                <a href="#" class="form__social-icons">
-                  <i class="fab fa-apple"></i>
-                </a>
-                <a id="discordsignup" class="form__social-icons">
-                  <i class="fab fa-discord"></i>
-                </a>
-                <a id="googlesignup" class="form__social-icons">
-                  <i class="fab fa-google"></i>
-                </a>
-                <a href="#" class="form__social-icons">
-                  <i class="fab fa-github"></i>
-                </a>
-              </div>
-            </form>
-          </div>
+            <input class="form__submit" type="submit" value="Sign Up" />
+
+            <p class="form__social-text">Or Sign Up with your social media</p>
+            <div class="form__social-media">
+              <a href="#" style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-apple"></i>
+              </a>
+              <a id="discordsignup" style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-discord"></i>
+              </a>
+              <a id="googlesignup" style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-google"></i>
+              </a>
+              <a id="githubsignup" style="cursor:pointer" class="form__social-icons">
+                <i class="fab fa-github"></i>
+              </a>
+            </div>
+          </form>
         </div>
-        <div class="container__panels">
-          <div class="panel panel__left">
-            <div class="panel__content">
-              <h3 class="panel__title">Are You New Here?</h3>
-              <p class="panel__paragraph">
-                Let's get you signed up. It's free and takes less than a minute.
-              </p>
-              <button class="btn btn-transparent" id="sign-up-btn">
-                Sign Up
-              </button>
-            </div>
-            <img
-              class="panel__image"
-              src="https://media.discordapp.net/attachments/886383437303402496/904105072470949948/unknown.png"
-              alt=""
-            />
+      </div>
+      <div class="container__panels">
+        <div class="panel panel__left">
+          <div class="panel__content">
+            <h3 class="panel__title">Are You New Here?</h3>
+            <p class="panel__paragraph">
+              Let's get you signed up. It's free and takes less than a minute.
+            </p>
+            <button class="btn btn-transparent" id="sign-up-btn">
+              Sign Up
+            </button>
           </div>
-          <div class="panel panel__right">
-            <div class="panel__content">
-              <h3 class="panel__title">Do you already have an account?</h3>
-              <p class="panel__paragraph">
-                Log in to your account to get started.
-              </p>
-              <button class="btn btn-transparent" id="sign-in-btn">
-                Sign In
-              </button>
-            </div>
-            <img
-              class="panel__image"
-              src="https://media.discordapp.net/attachments/886383437303402496/904104234931335198/unknown.png"
-              alt=""
-            />
+          <img class="panel__image"
+            src="https://media.discordapp.net/attachments/886383437303402496/904105072470949948/unknown.png" alt="" />
+        </div>
+        <div class="panel panel__right">
+          <div class="panel__content">
+            <h3 class="panel__title">Do you already have an account?</h3>
+            <p class="panel__paragraph">
+              Log in to your account to get started.
+            </p>
+            <button class="btn btn-transparent" id="sign-in-btn">
+              Sign In
+            </button>
           </div>
+          <img class="panel__image"
+            src="https://media.discordapp.net/attachments/886383437303402496/904104234931335198/unknown.png" alt="" />
         </div>
       </div>
     </div>
+  </div>
 
-    <div id="dashboard">
-      <div id="userinfo"></div>
+  <div id="dashboard">
+    <div id="toppart">
+      <div id="clock"></div>
       <button id="signout">Sign Out</button>
-
-      <style>
-        * {
-          overflow: hidden;
-        }
-
-        #userinfo {
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          animation: upfromdown 2s forwards;
-        }
-
-        #app {
-          background-color: #ff0000;
-          color: white;
-          padding: 10px;
-          border-radius: 5px;
-          border: none;
-          width: 25%;
-          font-family: "Poppins", sans-serif;
-          text-align: center;
-          text-decoration: none;
-          display: inline-block;
-          font-size: 16px;
-          margin: 4px 2px;
-          transition: width 1s;
-          -webkit-transition: width 1s;
-        }
-
-        #app:hover {
-          width: 50%;
-          box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2),
-            0 6px 20px 0 rgba(0, 0, 0, 0.19);
-          transition: width 1s;
-          -webkit-transition: width 1s;
-        }
-
-        /* when the user stops hovering over the button, the width of the button is reduced */
-
-        #signed-in-pfp {
-          border-radius: 100%;
-          border-style: solid;
-          border-width: 3px;
-          border-color: #272727;
-          animation: movement 2s;
-        }
-
-        @keyframes movement {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes upfromdown {
-          0% {
-            opacity: 0;
-            transform: translate(-50%, -30%);
-          }
-
-          100% {
-            opacity: 100%;
-            transform: translate(-50%, -50%);
-          }
-        }
-
-        #signed-in-username {
-          font-size: 2rem;
-        }
-
-        #signed-in-email {
-          font-size: 1rem;
-        }
-
-        #signout {
-          background-color: #ff0000;
-          color: white;
-          border-radius: 5px;
-          border: none;
-          padding: 10px 20px;
-          font-family: "Poppins", sans-serif;
-          text-align: center;
-          text-decoration: none;
-          display: inline-block;
-          font-size: 16px;
-          margin: 4px 2px;
-          position: absolute;
-          top: 10px;
-          right: 10px;
-        }
-
-        #signout:hover {
-          /* shadow */
-          box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24),
-            0 17px 50px 0 rgba(0, 0, 0, 0.19);
-        }
-      </style>
+      <button id="editprofile">Edit Profile</button>
     </div>
+    <div id="userinfo"></div>
+  </div>
 
-    <script src="./js/signup.js"></script>
-    <script src="./js/app.js"></script>
-  </body>
+    
+    
+    <style>
+      * {
+        overflow: hidden;
+      }
+
+      body {
+        background: url("https://media.discordapp.net/attachments/886383437303402496/905393250196668466/blurry-gradient-haikei.png") no-repeat center center fixed;
+        background-size: cover;
+        margin: 0;
+        padding: 0;
+      }
+
+      #toppart {
+        /* sticky navbar */
+        position: fixed;
+        top: 0;
+        width: 100%;
+        height: 13%;
+        z-index: 1;
+      }
+
+      #editprofile {
+        background-color: #F6002B;
+        color: white;
+        border-radius: 0px;
+        border: 2px solid #fff;
+        padding: 10px 20px;
+        font-family: "Poppins", sans-serif;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        position: absolute;
+        top: 10px;
+        right: 130px;
+        transition: border-radius 0.5s ease-in-out, border 0.5s ease-in-out, color 0.5s ease-in-out;
+      }
+
+      @keyframes fadeout {
+        0% {
+          opacity: 1;
+        }
+
+        100% {
+          opacity: 0;
+        }
+      }
+
+      #editprofile:hover {
+        border-radius: 10px;
+        border: 2px solid rgb(169, 255, 136);
+        color: rgb(169, 255, 136);
+        cursor: pointer;
+        transition: border-radius 0.5s ease-in-out, border 0.5s ease-in-out, color 0.5s ease-in-out;
+      }
+
+
+
+
+      #nullemail {
+        color: black;
+        font-style: italic;
+      }
+
+      #clock {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 10px;
+        text-align: center;
+        color: #fff;
+      }
+
+
+      #userinfo {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        animation: upfromdown 2s forwards;
+      }
+
+      #app {
+        background: url("https://media.discordapp.net/attachments/886383437303402496/905393250196668466/blurry-gradient-haikei.png");
+        background-size: cover;
+        /* set the width of the background image to 100% */
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-attachment: fixed;
+        /* little border around the whole thing */
+        border: 3px solid #fff;
+        color: white;
+        padding: 10px;
+        width: 25%;
+        font-family: "Poppins", sans-serif;
+        text-align: center;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        -webkit-transition: width 1s, border 1s;
+        transition: width 1s, border 1s;
+      }
+
+      #app:hover {
+        width: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        -webkit-transition: width 1s, border 1s;
+        transition: width 1s, border 1s;
+      }
+
+      /* when the user stops hovering over the button, the width of the button is reduced */
+
+      #signed-in-pfp {
+        border-radius: 50%;
+        border-style: solid;
+        border-width: 3px;
+        border-color: #fff;
+        width: 100px;
+        height: 100px;
+        animation: movement 2s;
+      }
+
+      @keyframes movement {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes upfromdown {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -30%);
+        }
+
+        100% {
+          opacity: 100%;
+          transform: translate(-50%, -50%);
+        }
+      }
+
+      #signed-in-username {
+        font-size: 2rem;
+      }
+
+      #signed-in-email {
+        font-size: 1rem;
+      }
+
+      #signout {
+        background-color: #F6002B;
+        color: white;
+        border-radius: 0px;
+        border: 2px solid #fff;
+        padding: 10px 20px;
+        font-family: "Poppins", sans-serif;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        transition: border-radius 0.5s ease-in-out, border 0.5s ease-in-out, color 0.5s ease-in-out;
+      }
+
+      #signout:hover {
+        border-radius: 10px;
+        border: 2px solid #000;
+        color: rgb(0, 0, 0);
+        /* mouse turn into a hand */
+        cursor: pointer;
+        transition: border-radius 0.5s ease-in-out, border 0.5s ease-in-out, color 0.5s ease-in-out;
+      }
+
+
+
+      #loginscreen {
+        display: none;
+      }
+    </style>
+
+  <script src="./js/signup.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+
 </html>

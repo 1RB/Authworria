@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
+
+
+    <title>Authworria Chat</title>
+  </head>
+  <body>
+    <script
+      src="https://cdn.socket.io/4.4.0/socket.io.min.js"
+      integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
+      crossorigin="anonymous"
+    ></script>
+    <!-- type="module" -->
+    <script>
+      let socket = null;
+      let mySocketId = null;
+    </script>
+    <script>
+      (async () => {
+        let serverLastUpdate = null;
+        let serverUpdateTimer = null;
+        const firebaseConfig = {
+          apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
+          authDomain: "authworria.firebaseapp.com",
+          databaseURL:
+            "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "authworria",
+          storageBucket: "authworria.appspot.com",
+          messagingSenderId: "635623599897",
+          appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
+          measurementId: "G-P84R1SCWJB",
+        };
+
+        const app = await firebase.initializeApp(firebaseConfig);
+
+        //auth state change firebase
+        firebase.auth().onAuthStateChanged(async (user) => {
+          if (user) {
+            firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
+            socket = await io("https://ws.inimicalpart.com:4242");
+            launchSocket();
+          } else {
+            window.location.href = "./login.html";
+          }
+        });
+        $(window).unload(function() {
+            socket.disconnect();
+        })
+        function launchSocket() {
+          socket.on("connect", async function () {
+            console.log("Connected, my socket id: %s", socket.id);
+            mySocketId = socket.id;
+            await firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
+            socket.emit("userIdent", { token: firebase.auth().currentUser.xa });
+            //
+          });
+          socket.on("userIdent", function (data) {
+            if (data.err == "Token expired") {
+              socket.disconnect();
+              window.location.href = "./login.html";
+            }
+            console.log("UserIdent sent, response:", data);
+            checkUpdateStart()
+          });
+          function checkUpdateStart() {
+            socket.emit("lastUpdate");
+            serverUpdateTimer = setInterval(() => {
+                if(!document.hidden) {
+                  socket.emit("lastUpdate");
+                }
+            }, 30000);
+          }
+          socket.on("lastUpdate", function (data) {
+            if (!serverLastUpdate) {
+                serverLastUpdate = data.lastUpdateTime;
+            }
+            if (serverLastUpdate != data.lastUpdateTime) {
+              console.log("Update from server:", data);
+              clearInterval(serverUpdateTimer);
+              socket.disconnect
+              return window.location.reload(true);
+            }
+          });
+          socket.on("getUsrbySkt", function (data) {
+            console.log(data);
+          });
+          socket.on("disconnect", function () {
+            console.log("Disconnected");
+          });
+          socket.on("getUID", function (data) {
+            console.log("getUID", data); // TODO: REMOVE LATER!!!!!!!!
+          });
+          socket.on("changeStatus", function (data) {
+            console.log("changeStatus", data);
+          });
+          socket.on("usrChangeStatus", function (data) {
+            console.log("usrChangeStatus", data);
+            if (data.statusImg) {
+              let imgEl = document.getElementById("statusImg");
+              if (!imgEl) {
+                imgEl = document.createElement("img");
+                imgEl.id = "statusImg";
+                document.body.appendChild(imgEl);
+              }
+              imgEl.src = data.statusImg;
+            }
+          });
+          socket.on("getStatus", function (data) {
+            console.log("getStatus", data);
+            if (data.err) return;
+            if (data.statusImg) {
+              let imgEl = document.getElementById("statusImg");
+              if (!imgEl) {
+                imgEl = document.createElement("img");
+                imgEl.id = "statusImg";
+                document.body.appendChild(imgEl);
+              }
+              imgEl.src = data.statusImg;
+            }
+          });
+          socket.on("sendMessage", function (data) {
+            console.log(data);
+            if (data.success) {
+              console.log("Message sent");
+              if (document.getElementById("msglog").innerHTML == "") {
+                document.getElementById("msglog").innerHTML =
+                  "" +
+                  data.sender +
+                  " (" +
+                  new Date(data.time).toLocaleString() +
+                  "): " +
+                  data.message;
+              } else {
+                document.getElementById("msglog").innerHTML =
+                  document.getElementById("msglog").innerHTML +
+                  "\n" +
+                  data.sender +
+                  " (" +
+                  new Date(data.time).toLocaleString() +
+                  "): " +
+                  data.message;
+              }
+              document.getElementById("msglog").scrollTop =
+                document.getElementById("msglog").scrollHeight;
+            } else {
+              console.log("Message not sent");
+            }
+          });
+          socket.on("receiveMessage", function (data) {
+            console.log("Message received");
+            console.log(data);
+            if (document.getElementById("msglog").innerHTML == "") {
+              document.getElementById("msglog").innerHTML =
+                data.sender +
+                " (" +
+                new Date(data.time).toLocaleString() +
+                "): " +
+                data.message;
+            } else {
+              document.getElementById("msglog").innerHTML =
+                document.getElementById("msglog").innerHTML +
+                "\n" +
+                data.sender +
+                " (" +
+                new Date(data.time).toLocaleString() +
+                "): " +
+                data.message;
+            }
+            document.getElementById("msglog").scrollTop =
+              document.getElementById("msglog").scrollHeight;
+          });
+          function sendMessage() {
+            socket.emit("sendMessage", {
+              message: document.getElementById("msgbox").value,
+              sender: mySocketId,
+            });
+            document.getElementById("msgbox").value = "";
+          }
+          document
+            .getElementById("msgbox")
+            .addEventListener("keyup", function (event) {
+              event.preventDefault();
+              if (event.keyCode === 13) {
+                sendMessage();
+              }
+            });
+          document
+            .getElementById("send")
+            .addEventListener("click", function (event) {
+              event.preventDefault();
+              sendMessage();
+            });
+        }
+      })();
+    </script>
+    <div id="messageContainer">
+      <textarea
+        id="msglog"
+        rows="50"
+        cols="60"
+        readonly
+        style="height: auto"
+      ></textarea>
+      <!-- <div id="msglog" style="height:200px; width:200px"></div> -->
+      <input type="text" id="msgbox" style="bottom: 0px" />
+      <button id="send" style="bottom: 0px">Send</button>
+    </div>
+  </body>
+</html>
