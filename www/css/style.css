@@ -123,18 +123,18 @@ body::-webkit-scrollbar {
 
 
 .panel:nth-child(2) {
-    background: #000;
+    background: #fff;
 }
 
 .panel:nth-child(2) h2 {
-    color: #fff;
+    color: #000;
     font-weight: 800!important;
     font-size: 56px!important;
     letter-spacing: -2.5px!important;
 }
 
 .panel:nth-child(2) h2 text {
-    font-weight: 900;
+    font-weight: 800;
     background: linear-gradient(45deg, #768FF0 0%, #F33A71 100%);
     background-clip: text;
     -webkit-background-clip: text;
