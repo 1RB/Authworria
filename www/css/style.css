@@ -91,52 +91,46 @@ body::-webkit-scrollbar {
     -moz-text-fill-color: transparent;
     -o-background-clip: text;
     -o-text-fill-color: transparent;
-
 }
 
 .panel:nth-child(1) p {
     font-weight: 700;
     color: #9A9FA8;
-    font-size: 1.2rem;
+    font-size: 1rem;
     /* move up the text a bit */
-    margin-top: -2rem;
+    margin-top: -1.5rem;
 }
 
-.panel:nth-child(1) button {
-    font-weight: 700;
-    font-size: inherit;
+.panel:nth-child(1) a {
+    text-decoration: none;
+
+}
+
+.panel:nth-child(1) a button {
+    font-weight: 800;
     color: white;
-    background: linear-gradient(45deg, #BB6DED 0%, #54D7EC 100%);
-    box-shadow: 0 10px 20px -10px #9D8EEE;
+    background: linear-gradient(135deg, rgb(203, 94, 238) 0%, rgb(75, 225, 236) 100%);
     border: none;
+    border-radius: 50px;
     padding: 12px 20px;
-    border-radius: 999px;
-    width: -webkit-fit-content;
-    width: -moz-fit-content;
-    width: min(700px, 100%);
-    height: auto;
-    max-width: 1144px;
-    margin: -5px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 0.8rem;
     cursor: pointer;
 }
-
 
 .panel:nth-child(1) p text {
     color: #282A30;
 }
+
 
 .panel:nth-child(2) {
     background: #000;
 }
 
 .panel:nth-child(2) h2 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
     color: #fff;
-    font-size: 2rem;
+    font-weight: 800!important;
+    font-size: 56px!important;
+    letter-spacing: -2.5px!important;
 }
 
 .panel:nth-child(2) h2 text {
@@ -151,39 +145,31 @@ body::-webkit-scrollbar {
     -o-text-fill-color: transparent;
 }
 
-.panel:nth-child(3) {
-    background: #131415;
+.panel:nth-child(2) p {
+    font-weight: 700;
+    color: #9A9FA8;
+    font-size: 1rem;
+    margin-top: -1.5rem;
 }
 
-.panel:nth-child(3) h2 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
+.panel:nth-child(2) p text {
+    color: #282A30;
+}
+
+.panel:nth-child(2) footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    background: #000;
     color: #fff;
-    font-size: 2rem;
+    font-size: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.panel:nth-child(3) h2 text {
-    font-weight: 900;
-    background: linear-gradient(45deg, #768FF0 0%, #F33A71 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-background-clip: text;
-    -moz-text-fill-color: transparent;
-    -o-background-clip: text;
-    -o-text-fill-color: transparent;
-}
 
-.panel:nth-child(4) {
-    background: #fff;
-}
-
-.panel:nth-child(4) h2 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    color: #000;
-    font-size: 1.5rem;
-}
 
 #svgimg {
     /* place to the right side of the text */
@@ -196,41 +182,6 @@ body::-webkit-scrollbar {
     z-index: 1;
     /* put the image in a box so that the text doesnt go under it */
     box-sizing: border-box;
-}
-
-.panel:nth-child(4) h2 text {
-    font-weight: 900;
-    background: linear-gradient(45deg, #768FF0 0%, #F33A71 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-background-clip: text;
-    -moz-text-fill-color: transparent;
-    -o-background-clip: text;
-    -o-text-fill-color: transparent;
-}
-
-.panel:nth-child(5) {
-    background: #131415;
-}
-
-.panel:nth-child(5) h2 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    color: #fff;
-    font-size: 2rem;
-}
-
-.panel:nth-child(5) h2 text {
-    font-weight: 900;
-    background: linear-gradient(45deg, #768FF0 0%, #F33A71 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-background-clip: text;
-    -moz-text-fill-color: transparent;
-    -o-background-clip: text;
-    -o-text-fill-color: transparent;
 }
 
 .top {
@@ -248,7 +199,7 @@ body::-webkit-scrollbar {
         height: 100vh;
         padding: 1em;
         box-sizing: border-box;
-        color: #fff;
+        color: #000;
         cursor: default;
         text-align: center;
         display: flex;
@@ -258,12 +209,16 @@ body::-webkit-scrollbar {
     }
 
     .panel:nth-child(1) {
-        background: #131415;
+        background: #fff;
+    }
+
+    #svgimg {
+        display: none;
     }
 
     .panel:nth-child(1) h1 {
         font-weight: 800!important;
-        font-size: 56px!important;
+        font-size: 45px!important;
         letter-spacing: -2.5px!important;
     }
 
@@ -282,38 +237,45 @@ body::-webkit-scrollbar {
     .panel:nth-child(1) p {
         font-weight: 700;
         color: #9A9FA8;
-        font-size: 1rem;
+        font-size: 0.9rem;
         /* move up the text a bit */
         margin-top: -1.5rem;
     }
 
-    .panel:nth-child(1) button {
+    .panel:nth-child(1) a {
+        text-decoration: none;
+
+    }
+    
+    .panel:nth-child(1) a button {
         font-weight: 800;
         color: white;
         background: linear-gradient(135deg, rgb(203, 94, 238) 0%, rgb(75, 225, 236) 100%);
         border: none;
         border-radius: 50px;
         padding: 12px 20px;
-        font-size: 0.8rem;
+        font-size: 0.76rem;
         cursor: pointer;
     }
-
+    
     .panel:nth-child(1) p text {
-        color: #fff;
+        color: #282A30;
     }
+    
 
     .panel:nth-child(2) {
-        background: #000;
+        background: #fff/*#ABF0D1;*/
     }
 
     .panel:nth-child(2) h2 {
+        color: #000;
         font-weight: 800!important;
-        font-size: 56px!important;
+        font-size: 45px!important;
         letter-spacing: -2.5px!important;
     }
 
     .panel:nth-child(2) h2 text {
-        font-weight: 900;
+        font-weight: 800;
         background: linear-gradient(45deg, #768FF0 0%, #F33A71 100%);
         background-clip: text;
         -webkit-background-clip: text;
@@ -331,6 +293,7 @@ body::-webkit-scrollbar {
         margin-top: -1.5rem;
     }
 
+
     .panel:nth-child(2) footer {
         position: absolute;
         bottom: 0;
@@ -338,16 +301,11 @@ body::-webkit-scrollbar {
         height: 50px;
         background: #000;
         color: #fff;
-        font-size: 1rem;
+        font-size: 13px;
         display: flex;
         justify-content: center;
         align-items: center;
     }
-
-    
-    
-
-
     
 }
     
