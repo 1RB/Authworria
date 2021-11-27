@@ -28,6 +28,8 @@
     <script>
       let socket = null;
       let mySocketId = null;
+      let resetUponUpdate = true;
+      let pendingMessages = [];
     </script>
     <script>
       //on window load
@@ -55,6 +57,7 @@
             socket.disconnect(); // Disconnects the user when the page is being closed
           });
           function launchSocket() {
+            let currentUser = {};
             socket.on("connect", async function () {
               console.log("Connected, my socket id: %s", socket.id);
               mySocketId = socket.id;
@@ -73,6 +76,7 @@
                 window.location.href = "./login.html"; // Redirects the user to the login page
               }
               console.log("UserIdent sent, response:", data);
+              currentUser = data.user;
               socket.emit("getStatus", { imgloc: "/webchat-imgs/" }); // Requests the status of the user
               checkUpdateStart(); // Starts the update checker
             });
@@ -88,10 +92,10 @@
               if (!serverLastUpdate) {
                 serverLastUpdate = data.lastUpdateTime;
               }
-              if (serverLastUpdate != data.lastUpdateTime) {
+              if (serverLastUpdate != data.lastUpdateTime && resetUponUpdate) {
                 console.log("Update from server:", data);
                 clearInterval(serverUpdateTimer);
-                socket.disconnect;
+                socket.disconnect();
                 return window.location.reload(true);
               }
             });
@@ -104,7 +108,7 @@
             socket.on("changeStatusRes", function (data) {
               // Executes when the server responds to clients request to change status
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, status: <new status>, statusImg: <status image location>}
-                document.getElementById("userstatuspfp").src = data.statusImg;
+              document.getElementById("userstatuspfp").src = data.statusImg;
               document.getElementById("userstatus").src = data.statusImg;
             });
             socket.on("usrChangeStatus", function (data) {
@@ -114,10 +118,13 @@
             socket.on("getStatusRes", function (data) {
               // Executes when the server reponds to a client request to get the status of a user
               // Returns: {err: "<errormsg>"} if fails else returns {uid: <user uid>, status: <user status>, success: true, statusImg: <status image location>}
+              if (currentUser.uid !== data.uid) {
+                return;
+              }
               document.getElementById("userstatuspfp").src = data.statusImg;
               document.getElementById("userstatus").src = data.statusImg;
-              document.getElementById("transparentOutline").style.display = "block"
-
+              document.getElementById("transparentOutline").style.display =
+                "block";
             });
             socket.on("sendMessageRes", function (data) {
               // Executes when the server responds to a client request to send a message
@@ -129,10 +136,10 @@
               document
                 .getElementById("temp-msg-" + data.messageId)
                 .removeAttribute("class");
-              document.getElementById("temp-msg-" + data.messageId).innerHTML = data.sender + ": " + data.message
+              document.getElementById("temp-msg-" + data.messageId).innerHTML =
+                data.sender + ": " + data.message;
               document.getElementById("temp-msg-" + data.messageId).id =
                 "message-" + data.messageId;
-            
             });
             socket.on("receiveMessage", function (data) {
               // Executes when the client receives a message
@@ -142,13 +149,14 @@
                 "<li id='messages-" +
                 data.messageId +
                 "'>" +
-                escapeString(data.sender) + ": " + data.message +
+                escapeString(data.sender) +
+                ": " +
+                data.message +
                 "</li>";
               document.getElementById("messageList").innerHTML += "<br> ";
               //scroll
               document.getElementById("messageList").scrollTop =
                 document.getElementById("messageList").scrollHeight;
-            
             });
             socket.on("getMessagesRes", function (data) {
               // Executes when the server responds to a client request to get messages in a certain limit
@@ -368,9 +376,9 @@
           <ol id="messageList"></ol>
         </div>
         <div id="channelHeader">
-            <!-- <div id="channelName"> -->
-              <!-- <h4>#general</h4> -->
-            <!-- </div> -->
+          <!-- <div id="channelName"> -->
+          <!-- <h4>#general</h4> -->
+          <!-- </div> -->
         </div>
         <input
           type="text"
@@ -492,13 +500,13 @@
       #transparentOutline {
         display: none;
         background-color: #292b2f;
-        width: 12px;
-        height: 12px;
+        width: 15px;
+        height: 15px;
         position: fixed;
-        bottom: 10px;
-        left: 36px;
+        bottom: 8px;
+        left: 35px;
         z-index: 1;
-        border-radius: 10vh;
+        border-radius: 100%;
       }
       .css-input {
         padding: 6px;
@@ -578,16 +586,18 @@
         white-space: nowrap;
         color: white;
         position: fixed;
+        bottom: 40px;
         margin-top: 70px;
-        height: calc(100% - 113px);
+        height: calc(100% - 117px);
         width: 100%;
       }
       #messageList li {
         display: inline;
+        overflow-wrap:break-word;
       }
       #channelHeader {
         position: fixed;
-        display:flex;
+        display: flex;
         top: 0;
         width: 100%;
         left: 18.9rem;
