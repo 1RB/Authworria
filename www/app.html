@@ -34,7 +34,7 @@
     <script>
       //on window load
       window.onload = () => {
-        async () => {
+        (async () => {
           // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
 
           const firebaseConfig = {
@@ -49,8 +49,12 @@
             measurementId: "G-P84R1SCWJB",
           };
 
-          const app = await firebase.initializeApp(firebaseConfig);
-
+          let app;
+          if (firebase.apps.length) {
+            app = firebase.app();
+          } else {
+            app = await firebase.initializeApp(firebaseConfig);
+          }
           let serverLastUpdate = null;
           let serverUpdateTimer = null;
           $(window).unload(function () {
@@ -146,7 +150,7 @@
               // Returns: {message: <message>, sender: <sender>, senderUID: <senders UID> senderImg: <senders pfp>, time: <time>}
 
               document.getElementById("messageList").innerHTML +=
-                "<li id='messages-" +
+                "<li id='message-" +
                 data.messageId +
                 "'>" +
                 escapeString(data.sender) +
@@ -175,6 +179,7 @@
 
               showUserDetail(user);
               launchSocket();
+              continueSetup();
             } else {
               // No user is signed in.
               window.location.href = "./login.html";
@@ -199,78 +204,36 @@
               .replace(/"/g, "&quot;")
               .replace(/'/g, "&#039;");
           }
-
-          document
-            .getElementById("signout")
-            .addEventListener("click", function () {
-              firebase.auth().signOut();
-            });
-
-          window.document
-            .getElementsByClassName("dropbtn")[0]
-            .addEventListener("click", function () {
-              if (
-                document.getElementById("dropdown-content").style.display ==
-                "block"
-              ) {
-                document.getElementById("dropdown-content").style.display =
-                  "none";
-              } else {
-                document.getElementById("dropdown-content").style.display =
-                  "block";
-              }
-
-              document
-                .getElementById("statusOnline")
-                .addEventListener("click", function () {
-                  document.getElementById("statusChange").style.display =
-                    "none";
-                  socket.emit("changeStatus", {
-                    status: "online",
-                    token: firebase?.auth()?.currentUser?.xa,
-                  });
-                });
-
-              document
-                .getElementById("statusIdle")
-                .addEventListener("click", function () {
-                  document.getElementById("statusChange").style.display =
-                    "none";
-                  socket.emit("changeStatus", {
-                    status: "idle",
-                    token: firebase?.auth()?.currentUser?.xa,
-                  });
-                });
-            });
-
-          document
-            .getElementById("statusDnd")
-            .addEventListener("click", function () {
-              document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", {
-                status: "dnd",
-                token: firebase?.auth()?.currentUser?.xa,
+          function continueSetup() {
+            document
+              .getElementById("messageBox")
+              .addEventListener("keyup", function (event) {
+                if (event.keyCode === 13) {
+                  event.preventDefault();
+                  sendMessage();
+                }
               });
-            });
-        };
+            function escapeString(str) {
+              // escape string for html
+              return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+            }
 
-        document
-          .getElementById("statusInvisible")
-          .addEventListener("click", function () {
-            document.getElementById("statusChange").style.display = "none";
-            socket.emit("changeStatus", {
-              status: "invisible",
-              token: firebase?.auth()?.currentUser?.xa,
-            });
-          });
-
-        document
-          .getElementById("statusInvisible")
-          .addEventListener("click", function () {
-            document.getElementById("statusChange").style.display = "none";
-            socket.emit("changeStatus", {
-              status: "invisible",
-            });
+            function makeID(length) {
+              var result = "";
+              var characters = "0123456789";
+              var charactersLength = characters.length;
+              for (var i = 0; i < length; i++) {
+                result += characters.charAt(
+                  Math.floor(Math.random() * charactersLength)
+                );
+              }
+              return result;
+            }
             function sendMessage() {
               var message = document.getElementById("messageBox").value;
               if (message != "") {
@@ -295,38 +258,81 @@
                 document.getElementById("messageBox").value = "";
               }
             }
-            //on enter, send message
             document
-              .getElementById("messageBox")
-              .addEventListener("keyup", function (event) {
-                if (event.keyCode === 13) {
-                  event.preventDefault();
-                  sendMessage();
-                }
+              .getElementById("signout")
+              .addEventListener("click", function () {
+                firebase.auth().signOut();
               });
 
-            function escapeString(str) {
-              // escape string for html
-              return str
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-            }
+            window.document
+              .getElementsByClassName("dropbtn")[0]
+              .addEventListener("click", function () {
+                if (
+                  document.getElementById("dropdown-content").style.display ==
+                  "block"
+                ) {
+                  document.getElementById("dropdown-content").style.display =
+                    "none";
+                } else {
+                  document.getElementById("dropdown-content").style.display =
+                    "block";
+                }
 
-            function makeID(length) {
-              var result = "";
-              var characters = "0123456789";
-              var charactersLength = characters.length;
-              for (var i = 0; i < length; i++) {
-                result += characters.charAt(
-                  Math.floor(Math.random() * charactersLength)
-                );
-              }
-              return result;
-            }
-          })();
+                document
+                  .getElementById("statusOnline")
+                  .addEventListener("click", function () {
+                    document.getElementById("statusChange").style.display =
+                      "none";
+                    socket.emit("changeStatus", {
+                      status: "online",
+                      token: firebase?.auth()?.currentUser?.xa,
+                    });
+                  });
+
+                document
+                  .getElementById("statusIdle")
+                  .addEventListener("click", function () {
+                    document.getElementById("statusChange").style.display =
+                      "none";
+                    socket.emit("changeStatus", {
+                      status: "idle",
+                      token: firebase?.auth()?.currentUser?.xa,
+                    });
+                  });
+              });
+
+            document
+              .getElementById("statusDnd")
+              .addEventListener("click", function () {
+                document.getElementById("statusChange").style.display = "none";
+                socket.emit("changeStatus", {
+                  status: "dnd",
+                  token: firebase?.auth()?.currentUser?.xa,
+                });
+              });
+
+            document
+              .getElementById("statusInvisible")
+              .addEventListener("click", function () {
+                document.getElementById("statusChange").style.display = "none";
+                socket.emit("changeStatus", {
+                  status: "invisible",
+                  token: firebase?.auth()?.currentUser?.xa,
+                });
+              });
+
+            document
+              .getElementById("statusInvisible")
+              .addEventListener("click", function () {
+                document.getElementById("statusChange").style.display = "none";
+                socket.emit("changeStatus", {
+                  status: "invisible",
+                });
+
+                //on enter, send message
+              });
+          }
+        })();
       };
     </script>
     <div id="loading">
@@ -393,6 +399,8 @@
       </div>
       <div id="account">
         <div class="dropdown">
+          <div id="friend-list"></div>
+          <div id="serverline"></div>
           <div id="profileSection">
             <div id="profile-img" class="dropbtn">
               <div id="transparentOutline"></div>
@@ -444,7 +452,13 @@
         height: 40px;
         /* border: 2px solid #000;*/
       }
-
+      .changeonhover:hover {
+        background-color: #33363c;
+      }
+      .selected {
+        background-color: #383c41;
+        color: white;
+      }
       #pfp:hover {
         cursor: pointer;
         filter: brightness(0.8);
@@ -499,7 +513,60 @@
       #dropdown-content a:hover {
         background-color: #12161f;
       }
-
+      #friend-list {
+        position: fixed;
+        background-color: #2f3136;
+        top: 65px;
+        left: 0;
+        width: 302px;
+        height: 825px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      #friend-list::-webkit-scrollbar {
+        display: none;
+      }
+      .user {
+        background-color: #292b30;
+        width: 301px;
+        height: 50px;
+        margin-bottom: 5px;
+        align-content: center;
+        align-items: center;
+        display: flex;
+        padding-left: 10px;
+        /* position: absolute; */
+      }
+      .friend-pfp {
+        border-radius: 10vh;
+        height: 40px;
+        width: 40px;
+        position: relative;
+      }
+      .friend-name {
+        top: -9px;
+        position: absolute;
+        left: 60px;
+        font-weight: initial;
+        color: #999999;
+      }
+      .friend-status {
+        position: absolute;
+        top: 13px;
+        font-size: 12px;
+        left: 60px;
+        font-weight: initial;
+        color: gray;
+      }
+      #serverline {
+        position: fixed;
+        top: 62px;
+        width: 300px;
+        height: 1px;
+        background-color: #28292c;
+      }
       #userstatuspfp {
         bottom: 10px;
         position: fixed;
@@ -517,6 +584,22 @@
         left: 36px;
         z-index: 1;
         border-radius: 10vh;
+      }
+      .transparentOutline {
+        background-color: #292b2f;
+        width: 12px;
+        height: 12px;
+        position: fixed;
+        z-index: 1;
+        border-radius: 10vh;
+      }
+      .status-pfp {
+        z-index: 2;
+      }
+      .pfp-pic {
+        border-radius: 10vh;
+        height: 40px;
+        width: 40px;
       }
 
       .css-input {
