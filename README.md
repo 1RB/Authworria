@@ -12,7 +12,7 @@
 </p>
 
 
-<img src="./img/authworriaimg.png"></img>
+<img src="./www/img/authworriaimg.png"></img>
 
 
 The purpose of this project, which was made for the International Baccalaureate Personal Project, is to develop a website where you can not only game with each other but also socialize with them, combining the gaming experience with the experience of grabbing a cup of coffee with a mate at a cafe.
@@ -24,17 +24,7 @@ The word `Authworria` is defined as `the growing anxiety while completing a stor
 This project uses Google's [Firebase](https://firebase.google.com) to host and authenticate users
 
 ### Authentication
-```js
-var provider = new firebase.auth.GoogleAuthProvider();
-          firebase
-            .auth()
-            .signInWithPopup(provider)
-            .then(res=>{
-              // code here
-                }).catch(e => {
-              console.log(e);
-            });
-```
+<img src="./img/googleLogin.png"></img>
 This line of code is essential for Firebase to authenticate users, and the `.signInWithPopup` will open a popup window prompting the user to sign in/up. We can also use `.signInWithRedirect` instead to redirect visitors to a page where they would sign in from and is more preffered on mobile browsers.
 
 ```js
@@ -55,12 +45,12 @@ I use the method `.getElementById` to get the HTML element associated with that 
 # TODO
 - [ ] Sign In & Sign Up
   - [x] Create the login / signup page
-  - [ ] Google and other methods of signing in
+  - [x] Google and other methods of signing in
   - [x] Get data from the login and send to dashboard
   - [ ] Username filter
 - [ ] Web-Chat
-  - [ ] Validate the users identity using a token
-  - [ ] Create web-chat page
+  - [x] Validate the users identity using a token
+  - [x] Create web-chat page
   - [ ] Add a word filter to block inappropriate messages
 - [ ] Multiplayer Web-Game
   - [ ] Authorize users with their token
