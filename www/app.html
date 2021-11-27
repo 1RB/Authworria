@@ -64,7 +64,7 @@
               await firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
               socket.emit("userIdent", {
                 // Identifies the user to the server using firebases token
-                token: firebase.auth().currentUser.xa,
+                token: firebase?.auth()?.currentUser?.xa,
               });
               //
             });
@@ -77,14 +77,15 @@
               }
               console.log("UserIdent sent, response:", data);
               currentUser = data.user;
-              socket.emit("getStatus", { imgloc: "/webchat-imgs/" }); // Requests the status of the user
+              socket.emit("getStatus", { imgloc: "/webchat-imgs/",token: firebase?.auth()?.currentUser?.xa }); // Requests the status of the user
               checkUpdateStart(); // Starts the update checker
             });
             function checkUpdateStart() {
               socket.emit("lastUpdate");
               serverUpdateTimer = setInterval(() => {
                 if (!document.hidden) {
-                  socket.emit("lastUpdate");
+                    socket.emit("lastUpdate");
+
                 }
               }, 30000);
             }
@@ -246,28 +247,28 @@
             .getElementById("statusOnline")
             .addEventListener("click", function () {
               document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", { status: "online" });
+              socket.emit("changeStatus", { status: "online",token: firebase?.auth()?.currentUser?.xa,});
             });
 
           document
             .getElementById("statusIdle")
             .addEventListener("click", function () {
               document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", { status: "idle" });
+              socket.emit("changeStatus", { status: "idle",token: firebase?.auth()?.currentUser?.xa,});
             });
 
           document
             .getElementById("statusDnd")
             .addEventListener("click", function () {
               document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", { status: "dnd" });
+              socket.emit("changeStatus", { status: "dnd",token: firebase?.auth()?.currentUser?.xa, });
             });
 
           document
             .getElementById("statusInvisible")
             .addEventListener("click", function () {
               document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", { status: "invisible" });
+              socket.emit("changeStatus", { status: "invisible",token: firebase?.auth()?.currentUser?.xa, });
             });
 
           //on enter, send message
@@ -287,6 +288,7 @@
                 message: escapeString(message),
                 randomId: randomId,
                 sender: socket.id,
+                token: firebase?.auth()?.currentUser?.xa,
               });
 
               document.getElementById("messageList").innerHTML +=
@@ -582,6 +584,8 @@
       }
 
       #messageList {
+        overflow-wrap:break-word;
+        word-wrap: break-word;
         overflow-x: auto;
         white-space: nowrap;
         color: white;
@@ -589,11 +593,10 @@
         bottom: 40px;
         margin-top: 70px;
         height: calc(100% - 117px);
-        width: 100%;
+        width: 100vw;
       }
       #messageList li {
         display: inline;
-        overflow-wrap:break-word;
       }
       #channelHeader {
         position: fixed;
