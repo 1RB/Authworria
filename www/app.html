@@ -171,7 +171,13 @@
             });
             socket.on("usrChangeStatus", function (data) {
               // Executes when a user changes their status.
-              // Returns: {uid: <user uid>, status: <new status>, statusImg: <status image location>}
+              // Returns: {uid: <user uid>, statusText: <status text>, status: <new status>, statusImg: <status image location>}
+              if (document.getElementById("friend-statusicon-" + data.uid)) {
+                document.getElementById("friend-statusicon-" + data.uid).src =
+                  data.statusImg;
+                document.getElementById("friend-status-" + data.uid).innerText =
+                  data.statusText;
+              }
             });
             socket.on("getStatusRes", function (data) {
               // Executes when the server reponds to a client request to get the status of a user
@@ -369,7 +375,6 @@
                 document.getElementById("statusChange").style.display = "block";
               });
 
-
             document
               .getElementById("statusOnline")
               .addEventListener("click", function () {
@@ -408,13 +413,18 @@
                   token: firebase?.auth()?.currentUser?.xa,
                 });
               });
-              document.getElementById("dropdown-content").addEventListener("mouseleave", function () {
-                document.getElementById("dropdown-content").style.display = "none";
+            document
+              .getElementById("dropdown-content")
+              .addEventListener("mouseleave", function () {
+                document.getElementById("dropdown-content").style.display =
+                  "none";
               });
-              // do the same for statusChange
-                document.getElementById("statusChange").addEventListener("mouseleave", function () {
-                    document.getElementById("statusChange").style.display = "none";
-                });
+            // do the same for statusChange
+            document
+              .getElementById("statusChange")
+              .addEventListener("mouseleave", function () {
+                document.getElementById("statusChange").style.display = "none";
+              });
           }
         })();
       };
@@ -730,24 +740,21 @@
       }
 
       #chat {
-        /*middle responsive*/
         position: fixed;
         bottom: 0;
-        left: 18.9rem;
-        right: 0;
+        left: 0;
+        right: 100%;
         height: 100%;
         background-color: #36393f;
       }
 
       #chat input {
         text-indent: 10px;
-        /*middle center responsive*/
         position: absolute;
-        width: 90%;
-        bottom: 0;
-        /* left: 0; */
-        left: 50%;
-        right: 25%;
+        /* width: 90%; */
+        left: 61px;
+        bottom: 73px;
+        width: 242px;
         margin-left: -45%;
         margin-bottom: 10px;
         height: 30px;
@@ -755,11 +762,9 @@
 
       #messages {
         position: fixed;
-
         top: 0;
         width: 100%;
-        left: 18.9rem;
-
+        right: 1.9rem;
         height: calc(100% - 52px);
       }
 
@@ -782,7 +787,7 @@
         display: flex;
         top: 0;
         width: 100%;
-        left: 18.9rem;
+        left: 0;
         height: 52px;
         background-color: #36393f;
         color: white;
@@ -798,7 +803,7 @@
         position: fixed;
         bottom: 0;
         left: 0;
-        width: 301px;
+        width: 100%;
         height: 60px;
       }
 
