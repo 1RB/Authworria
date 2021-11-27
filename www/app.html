@@ -34,7 +34,8 @@
     <script>
       //on window load
       window.onload = () => {
-        async () => {
+        (async () => {
+          let amountOfFriends = 0;
           // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
 
           const firebaseConfig = {
@@ -48,16 +49,67 @@
             appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
             measurementId: "G-P84R1SCWJB",
           };
-
-          const app = await firebase.initializeApp(firebaseConfig);
-
+          function addUser(data) {
+            amountOfFriends++;
+            let userdiv = document.createElement("div");
+            userdiv.id = "user-" + data.uid;
+            userdiv.classList.add("user");
+            userdiv.classList.add("changeonhover");
+            let friendpfp = document.createElement("div");
+            friendpfp.id = "friend-pfp-" + data.uid;
+            friendpfp.classList.add("friend-pfp");
+            let friendpfpimg = document.createElement("img");
+            friendpfpimg.src = data.avatar;
+            friendpfpimg.classList.add("pfp-pic");
+            friendpfpimg.id = "friendpfp-" + data.uid;
+            let friendtransparentOutline = document.createElement("div");
+            friendtransparentOutline.id =
+              "friend-transparentOutline-" + data.uid;
+            friendtransparentOutline.classList.add("transparentOutline");
+            friendtransparentOutline.style.display = "block";
+            friendtransparentOutline.style.position = "absolute";
+            friendtransparentOutline.style.top = "27px";
+            friendtransparentOutline.style.left = "28px";
+            let friendstatus = document.createElement("img");
+            friendstatus.id = "friend-statusicon-" + data.uid;
+            friendstatus.src = data.statusIcon;
+            friendstatus.classList.add("status-pfp");
+            friendstatus.style.position = "absolute";
+            friendstatus.style.top = "24px";
+            friendstatus.style.left = "22px";
+            let friendname = document.createElement("p");
+            friendname.id = "friend-name-" + data.uid;
+            friendname.classList.add("friend-name");
+            friendname.style.top = -64 + 55 * amountOfFriends + "px";
+            friendname.style.left = "60px";
+            friendname.innerHTML = data.name; // change to username later
+            let friendstatusp = document.createElement("p");
+            friendstatusp.id = "friend-status-" + data.uid;
+            friendstatusp.classList.add("friend-status");
+            friendstatusp.style.top = -42 + 55 * amountOfFriends + "px";
+            friendstatusp.style.left = "60px";
+            friendstatusp.innerHTML = data.status; // change to status later
+            friendpfp.appendChild(friendpfpimg);
+            friendpfp.appendChild(friendtransparentOutline);
+            friendpfp.appendChild(friendstatus);
+            userdiv.appendChild(friendpfp);
+            userdiv.appendChild(friendname);
+            userdiv.appendChild(friendstatusp);
+            document.getElementById("friend-list").appendChild(userdiv);
+          }
+          let app;
+          if (firebase.apps.length) {
+            app = firebase.app();
+          } else {
+            app = await firebase.initializeApp(firebaseConfig);
+          }
+          let currentUser = {};
           let serverLastUpdate = null;
           let serverUpdateTimer = null;
           $(window).unload(function () {
             socket.disconnect(); // Disconnects the user when the page is being closed
           });
           function launchSocket() {
-            let currentUser = {};
             socket.on("connect", async function () {
               console.log("Connected, my socket id: %s", socket.id);
               mySocketId = socket.id;
@@ -82,6 +134,9 @@
                 token: firebase?.auth()?.currentUser?.xa,
               }); // Requests the status of the user
               checkUpdateStart(); // Starts the update checker
+              socket.emit("getKnown", {
+                  token: firebase?.auth()?.currentUser?.xa,
+              });
             });
             function checkUpdateStart() {
               socket.emit("lastUpdate");
@@ -126,6 +181,36 @@
               document.getElementById("transparentOutline").style.display =
                 "block";
             });
+            socket.on("getInfoRes", function (data) {
+              // check if uid matches our uid, if so return
+              if (data.err) {
+                console.log("Error:", data.err);
+                return;
+              }
+              if (data.uid == currentUser.uid) return;
+              // if not, check if uid is in friend list, if so return
+              if (document.getElementById("friend-pfp-" + data.uid)) return;
+              // add user to friend list using addUser function with the data variable passed in
+              console.log(data)
+              addUser(data);
+              console.log("User added:", data.uid + " (" + data.name + ")");
+            });
+            socket.on("getKnownRes", async function (data) {
+              // Executes when the server requests the list of known users
+              // Returns: {err: "<errormsg>"} if fails else returns {uid:<user uid>, knownUsers:[<friend uid 1>, <friend uid 2>, ...]}
+                console.log("getKnown sent, response:", data);
+                if (data.err) {
+                    console.log("Error:", data.err);
+                } else {
+                    console.log("Known users:", data.knownUsers);
+                    for (let i = 0; i < data.knownUsers.length; i++) {
+                    await socket.emit("getInfo", {
+                        uid: data.knownUsers[i],
+                        token: firebase?.auth()?.currentUser?.xa,
+                    });
+                    }
+                }
+            });
             socket.on("sendMessageRes", function (data) {
               // Executes when the server responds to a client request to send a message
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, message: <message>, sender: <sender>, senderUID: <senders UID>, senderImg: <senders pfp>, time: <time>}
@@ -146,7 +231,7 @@
               // Returns: {message: <message>, sender: <sender>, senderUID: <senders UID> senderImg: <senders pfp>, time: <time>}
 
               document.getElementById("messageList").innerHTML +=
-                "<li id='messages-" +
+                "<li id='message-" +
                 data.messageId +
                 "'>" +
                 escapeString(data.sender) +
@@ -175,6 +260,7 @@
 
               showUserDetail(user);
               launchSocket();
+              continueSetup();
             } else {
               // No user is signed in.
               window.location.href = "./login.html";
@@ -199,78 +285,37 @@
               .replace(/"/g, "&quot;")
               .replace(/'/g, "&#039;");
           }
+          function continueSetup() {
 
-          document
-            .getElementById("signout")
-            .addEventListener("click", function () {
-              firebase.auth().signOut();
-            });
-
-          window.document
-            .getElementsByClassName("dropbtn")[0]
-            .addEventListener("click", function () {
-              if (
-                document.getElementById("dropdown-content").style.display ==
-                "block"
-              ) {
-                document.getElementById("dropdown-content").style.display =
-                  "none";
-              } else {
-                document.getElementById("dropdown-content").style.display =
-                  "block";
-              }
-
-              document
-                .getElementById("statusOnline")
-                .addEventListener("click", function () {
-                  document.getElementById("statusChange").style.display =
-                    "none";
-                  socket.emit("changeStatus", {
-                    status: "online",
-                    token: firebase?.auth()?.currentUser?.xa,
-                  });
-                });
-
-              document
-                .getElementById("statusIdle")
-                .addEventListener("click", function () {
-                  document.getElementById("statusChange").style.display =
-                    "none";
-                  socket.emit("changeStatus", {
-                    status: "idle",
-                    token: firebase?.auth()?.currentUser?.xa,
-                  });
-                });
-            });
-
-          document
-            .getElementById("statusDnd")
-            .addEventListener("click", function () {
-              document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", {
-                status: "dnd",
-                token: firebase?.auth()?.currentUser?.xa,
+            document
+              .getElementById("messageBox")
+              .addEventListener("keyup", function (event) {
+                if (event.keyCode === 13) {
+                  event.preventDefault();
+                  sendMessage();
+                }
               });
-            });
-        };
+            function escapeString(str) {
+              // escape string for html
+              return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+            }
 
-        document
-          .getElementById("statusInvisible")
-          .addEventListener("click", function () {
-            document.getElementById("statusChange").style.display = "none";
-            socket.emit("changeStatus", {
-              status: "invisible",
-              token: firebase?.auth()?.currentUser?.xa,
-            });
-          });
-
-        document
-          .getElementById("statusInvisible")
-          .addEventListener("click", function () {
-            document.getElementById("statusChange").style.display = "none";
-            socket.emit("changeStatus", {
-              status: "invisible",
-            });
+            function makeID(length) {
+              var result = "";
+              var characters = "0123456789";
+              var charactersLength = characters.length;
+              for (var i = 0; i < length; i++) {
+                result += characters.charAt(
+                  Math.floor(Math.random() * charactersLength)
+                );
+              }
+              return result;
+            }
             function sendMessage() {
               var message = document.getElementById("messageBox").value;
               if (message != "") {
@@ -295,38 +340,81 @@
                 document.getElementById("messageBox").value = "";
               }
             }
-            //on enter, send message
             document
-              .getElementById("messageBox")
-              .addEventListener("keyup", function (event) {
-                if (event.keyCode === 13) {
-                  event.preventDefault();
-                  sendMessage();
-                }
+              .getElementById("signout")
+              .addEventListener("click", function () {
+                firebase.auth().signOut();
               });
 
-            function escapeString(str) {
-              // escape string for html
-              return str
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-            }
+            window.document
+              .getElementsByClassName("dropbtn")[0]
+              .addEventListener("click", function () {
+                if (
+                  document.getElementById("dropdown-content").style.display ==
+                  "block"
+                ) {
+                  document.getElementById("dropdown-content").style.display =
+                    "none";
+                } else {
+                  document.getElementById("dropdown-content").style.display =
+                    "block";
+                }
 
-            function makeID(length) {
-              var result = "";
-              var characters = "0123456789";
-              var charactersLength = characters.length;
-              for (var i = 0; i < length; i++) {
-                result += characters.charAt(
-                  Math.floor(Math.random() * charactersLength)
-                );
-              }
-              return result;
-            }
-          })();
+                document
+                  .getElementById("statusOnline")
+                  .addEventListener("click", function () {
+                    document.getElementById("statusChange").style.display =
+                      "none";
+                    socket.emit("changeStatus", {
+                      status: "online",
+                      token: firebase?.auth()?.currentUser?.xa,
+                    });
+                  });
+
+                document
+                  .getElementById("statusIdle")
+                  .addEventListener("click", function () {
+                    document.getElementById("statusChange").style.display =
+                      "none";
+                    socket.emit("changeStatus", {
+                      status: "idle",
+                      token: firebase?.auth()?.currentUser?.xa,
+                    });
+                  });
+              });
+
+            document
+              .getElementById("statusDnd")
+              .addEventListener("click", function () {
+                document.getElementById("statusChange").style.display = "none";
+                socket.emit("changeStatus", {
+                  status: "dnd",
+                  token: firebase?.auth()?.currentUser?.xa,
+                });
+              });
+
+            document
+              .getElementById("statusInvisible")
+              .addEventListener("click", function () {
+                document.getElementById("statusChange").style.display = "none";
+                socket.emit("changeStatus", {
+                  status: "invisible",
+                  token: firebase?.auth()?.currentUser?.xa,
+                });
+              });
+
+            document
+              .getElementById("statusInvisible")
+              .addEventListener("click", function () {
+                document.getElementById("statusChange").style.display = "none";
+                socket.emit("changeStatus", {
+                  status: "invisible",
+                });
+
+                //on enter, send message
+              });
+          }
+        })();
       };
     </script>
     <div id="loading">
@@ -393,6 +481,8 @@
       </div>
       <div id="account">
         <div class="dropdown">
+          <div id="friend-list"></div>
+          <div id="serverline"></div>
           <div id="profileSection">
             <div id="profile-img" class="dropbtn">
               <div id="transparentOutline"></div>
@@ -444,7 +534,14 @@
         height: 40px;
         /* border: 2px solid #000;*/
       }
-
+      .changeonhover:hover {
+        background-color: #33363c;
+        cursor: pointer;
+      }
+      .selected {
+        background-color: #383c41;
+        color: white;
+      }
       #pfp:hover {
         cursor: pointer;
         filter: brightness(0.8);
@@ -499,7 +596,60 @@
       #dropdown-content a:hover {
         background-color: #12161f;
       }
-
+      #friend-list {
+        position: fixed;
+        background-color: #292b30;
+        top: 65px;
+        left: 0;
+        width: 302px;
+        height: 825px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      #friend-list::-webkit-scrollbar {
+        display: none;
+      }
+      .user {
+        background-color: #292b30;
+        width: 301px;
+        height: 50px;
+        margin-bottom: 5px;
+        align-content: center;
+        align-items: center;
+        display: flex;
+        padding-left: 10px;
+        /* position: absolute; */
+      }
+      .friend-pfp {
+        border-radius: 10vh;
+        height: 40px;
+        width: 40px;
+        position: relative;
+      }
+      .friend-name {
+        /* top: -9px;
+        left: 60px; */
+        position: absolute;
+        font-weight: initial;
+        color: #999999;
+      }
+      .friend-status {
+        position: absolute;
+        /* top: 13px;
+        left: 60px; */
+        font-size: 12px;
+        font-weight: initial;
+        color: gray;
+      }
+      #serverline {
+        position: fixed;
+        top: 62px;
+        width: 300px;
+        height: 1px;
+        background-color: #28292c;
+      }
       #userstatuspfp {
         bottom: 10px;
         position: fixed;
@@ -517,6 +667,22 @@
         left: 36px;
         z-index: 1;
         border-radius: 10vh;
+      }
+      .transparentOutline {
+        background-color: #292b2f;
+        width: 12px;
+        height: 12px;
+        position: fixed;
+        z-index: 1;
+        border-radius: 10vh;
+      }
+      .status-pfp {
+        z-index: 2;
+      }
+      .pfp-pic {
+        border-radius: 10vh;
+        height: 40px;
+        width: 40px;
       }
 
       .css-input {
