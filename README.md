@@ -21,16 +21,17 @@ The purpose of this project, which was made for the International Baccalaureate 
 The word `Authworria` is defined as `the growing anxiety while completing a story before its fast-approaching deadline.` I picked this name for the project to reflect my concern about finishing it before the deadline, which is rapidly approaching.
 
 ## Explanation
-This project uses Google's [Firebase](https://firebase.google.com) to host and authenticate users
+The website is made using [Node.js](https://nodejs.org/en/), [Express](https://expressjs.com/), [Firebase](https://www.firebase.com/), [Socket.io](https://socket.io/), [Porkbun](https://www.porkbun.com), [Bootstrap](https://getbootstrap.com/), [Font Awesome](https://fontawesome.com/), and [Google Fonts](https://fonts.google.com/). 
 
 ### Authentication
+The authentication is done using Firebase's [Google authentication](https://firebase.google.com/docs/auth/web/google-signin).
+
 <img src="./img/googleLogin.png"></img>
+
 This line of code is essential for Firebase to authenticate users, and the `.signInWithPopup` will open a popup window prompting the user to sign in/up. We can also use `.signInWithRedirect` instead to redirect visitors to a page where they would sign in from and is more preffered on mobile browsers.
 
-```js
-document.getElementById("dashboard").style.display = "block";
-document.getElementById("loginscreen").style.display = "none";
-```
+<img src="./img/showPage.png"></img>
+
 I use the method `.getElementById` to get the HTML element associated with that value, which is the "dashboard" and "loginscreen" in this example. Then I alter the css value of the elements with `.style`. `.display = "block"` makes the element visible, whereas `.display = "none"` makes it invisible. As a result, after the user logs in, the "loginscreen" is replaced with the "dashboard".
 
 ### 
