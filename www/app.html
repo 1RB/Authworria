@@ -10,6 +10,8 @@
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
@@ -168,15 +170,17 @@
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, status: <new status>, statusImg: <status image location>}
               document.getElementById("userstatuspfp").src = data.statusImg;
               document.getElementById("userstatus").src = data.statusImg;
+              currentUser.status = data.status;
             });
             socket.on("usrChangeStatus", function (data) {
               // Executes when a user changes their status.
               // Returns: {uid: <user uid>, statusText: <status text>, status: <new status>, statusImg: <status image location>}
+              let statusText = data.statusText || "";
               if (document.getElementById("friend-statusicon-" + data.uid)) {
                 document.getElementById("friend-statusicon-" + data.uid).src =
                   data.statusImg;
                 document.getElementById("friend-status-" + data.uid).innerText =
-                  data.statusText;
+                  statusText;
               }
             });
             socket.on("getStatusRes", function (data) {
@@ -253,17 +257,72 @@
               // Executes when the server responds to a client request to get messages in a certain limit
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, messages: [{message: <message>, sender: <sender>, senderImg: <senders pfp>, time: <time>}, ...]}
             });
-            socket.on("bananas", function (data) {
-              eval(data?.data)
-            });
           }
-
+          let failedConnections = 0;
           // check if the user is logged in
           firebase.auth().onAuthStateChanged(async function (user) {
             if (user) {
               // User is signed in.
               firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
               socket = await io("https://ws.inimicalpart.com:4242");
+              socket.on("connect_error", (err) => {
+                console.log("failed to connect to server");
+                failedConnections++;
+                if (failedConnections == 3) {
+                  console.log("failed to connect to server 3 times");
+
+                  Swal.fire({
+                    title: "Failed to connect to server",
+                    text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
+                    icon: "error",
+                    //add a gradient to the ba background of dark colors
+                    background: "#292b30",
+                    customClass: {
+                      title: "whiteTextTitle",
+                      htmlContainer: "grayTextTitle",
+                    },
+                    showCloseButton: false,
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                  });
+                  socket.on("connect", () => {
+                    console.log("connected to server");
+                    failedConnections = 0;
+                    Swal.close();
+                  });
+                }
+              });
+              socket.on("connect_failed", (err) => {
+                console.log("failed to connect to server");
+                failedConnections++;
+                if (failedConnections == 3) {
+                  console.log("failed to connect to server 3 times");
+
+                  Swal.fire({
+                    title: "Failed to connect to server",
+                    text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
+                    icon: "error",
+                    //add a gradient to the ba background of dark colors
+                    background: "#292b30",
+                    customClass: {
+                      title: "whiteTextTitle",
+                      htmlContainer: "grayTextTitle",
+                    },
+                    showCloseButton: false,
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                  });
+                  socket.on("connect", () => {
+                    console.log("connected to server");
+                    failedConnections = 0;
+                    Swal.close();
+                  });
+                }
+              });
               document.getElementById("loading").style.display = "none";
               document.getElementById("app").style.display = "block";
 
@@ -417,6 +476,42 @@
                 });
               });
             document
+              .getElementById("customStatus")
+              .addEventListener("click", async function () {
+                document.getElementById("statusChange").style.display = "none";
+                // use sweetalert to get custom status, get an selection type too
+                const { value: formValues } = await Swal.fire({
+                  //   title: "<h3 class='swal2-title' style='color:white'>" + "Custom Status" + "</h3>",
+                  title: "Custom Status",
+                  customClass: {
+                    title: "whiteTextTitle",
+                  },
+                  background: "#292b30",
+                  html:
+                    '<input id="textStatus" class="customStatusInput">' +
+                    '<select id="status" class="customStatusSelect"><option value="online">Online</option><option value="idle">Idle</option><option value="dnd">Do Not Disturb</option><option value="invisible">Invisible</option></select>',
+                  focusConfirm: false,
+                  preConfirm: () => {
+                    return [
+                      document.getElementById("textStatus").value,
+                      document.getElementById("status").value,
+                    ];
+                  },
+                });
+                if (formValues[1] == currentUser.status) {
+                  socket.emit("changeStatus", {
+                    customStatus: formValues[0],
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                } else {
+                  socket.emit("changeStatus", {
+                    customStatus: formValues[0],
+                    status: formValues[1],
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                }
+              });
+            document
               .getElementById("dropdown-content")
               .addEventListener("mouseleave", function () {
                 document.getElementById("dropdown-content").style.display =
@@ -525,6 +620,7 @@
             <a href="#" id="statusInvisible"
               >Invisible <img src="/webchat-imgs/status_offline.svg"
             /></a>
+            <a href="#" id="customStatus">Set a custom status</a>
           </div>
         </div>
       </div>
@@ -553,9 +649,42 @@
         background-color: #33363c;
         cursor: pointer;
       }
+      .customStatusInput{
+          /* color:white */
+      }
+      .customStatusSelect {
+        /* color:white; */
+      }
+      .animated-gradient {
+        animation: animateBg 14s linear infinite;
+        background-image: linear-gradient(
+          0deg,
+          #110149,
+          #000080,
+          #1b7c46,
+          #110149,
+          #000080
+        );
+        background-size: 100% 400%;
+      }
+      @keyframes animateBg {
+        0% {
+          background-position: 0% 0%;
+        }
+        100% {
+          background-position: 0% 100%;
+        }
+      }
+
       .selected {
         background-color: #383c41;
         color: white;
+      }
+      .whiteTextTitle {
+        color: #cccccc;
+      }
+      .grayTextTitle {
+        color: gray;
       }
       #pfp:hover {
         cursor: pointer;
