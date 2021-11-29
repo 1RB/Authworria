@@ -66,3 +66,9 @@ I use the method `.getElementById` to get the HTML element associated with that 
   - [ ] Authorize users with their token
   - [ ] Design the game
   - [ ] Add web-chat to the game
+
+# Known Bugs
+
+<!-- there is a bug where you wont get into the page because of the loading -->
+
+- User cant get into the /app or /login. #1
