@@ -24,7 +24,7 @@ The word `Authworria` is defined as `the growing anxiety while completing a stor
 
 The website is made using [Node.js](https://nodejs.org/en/), [Express](https://expressjs.com/), [Firebase](https://www.firebase.com/), [Socket.io](https://socket.io/), [Porkbun](https://www.porkbun.com), [Bootstrap](https://getbootstrap.com/), [Font Awesome](https://fontawesome.com/), and [Google Fonts](https://fonts.google.com/).
 
-# Known Bugs
+## Known Bugs
 
 - User cant get into the /app or /login. [#1](https://github.com/TheIIISociety/Authworria/issues/1)
 
