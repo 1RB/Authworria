@@ -26,7 +26,7 @@ The website is made using [Node.js](https://nodejs.org/en/), [Express](https://e
 
 # Known Bugs
 
-- User cant get into the /app or /login. https://github.com/TheIIISociety/Authworria/issues/1
+- User cant get into the /app or /login. [#1](https://github.com/TheIIISociety/Authworria/issues/1)
 
 ### Authentication
 
