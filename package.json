@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "blobity": "^0.1.7",
+    "chalk": "^4.1.2",
     "socket.io": "^4.4.0"
   }
 }

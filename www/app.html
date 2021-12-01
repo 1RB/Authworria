@@ -1,362 +1,714 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <script
+      src="https://kit.fontawesome.com/1788c719dd.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://kit.fontawesome.com/1788c719dd.js" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/app.css" />
+    <title>app</title>
+  </head>
 
-  <link rel="preconnect" href="https://fonts.gstatic.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="./css/app.css" />
-  <title>app</title>
-</head>
+  <body>
+    <script
+      src="https://cdn.socket.io/4.4.0/socket.io.min.js"
+      integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
+      crossorigin="anonymous"
+    ></script>
+    <!-- type="module" -->
+    <script>
+      let socket = null;
+      let mySocketId = null;
+      let resetUponUpdate = false;
+      let pendingMessages = [];
+      async function generateUserMenu(menudiv, data) {
+        /*
+          convert the below html code (remove friend) to javascript using document.createElement()
+          <div id="rem-friend" style="
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background-color: red;
+            margin-bottom: 20px;"></div> 
+          */
+        let remfriend = document.createElement("div");
+        remfriend.id = "rem-friend";
+        remfriend.style.position = "absolute";
+        remfriend.style.bottom = "0";
+        remfriend.style.width = "100%";
+        remfriend.style.height = "40px";
+        // remfriend.style.backgroundColor = "#ff3333";
+        //display justify-content-center
+        remfriend.style.display = "flex";
+        remfriend.style.justifyContent = "center";
+        remfriend.style.alignItems = "center";
+        remfriend.style.marginBottom = "20px";
+        //border should be a seperator line
+        remfriend.style.border = "1px solid #ff3333";
+        remfriend.style.transition = "all 0.5s ease-in-out";
+        remfriend.style.cursor = "pointer";
+        remfriend.dataset.uid = data.uid;
 
-<body>
-  <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"
-    integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
-    crossorigin="anonymous"></script>
-  <!-- type="module" -->
-  <script>
-    let socket = null;
-    let mySocketId = null;
-    let resetUponUpdate = true;
-    let pendingMessages = [];
-  </script>
-  <script>
-    //on window load
-    window.onload = () => {
-      (async () => {
-        let amountOfFriends = 0;
-        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
+        //remfriend.style.borderRadius = "10px";
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
-          authDomain: "authworria.firebaseapp.com",
-          databaseURL:
-            "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "authworria",
-          storageBucket: "authworria.appspot.com",
-          messagingSenderId: "635623599897",
-          appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
-          measurementId: "G-P84R1SCWJB",
+        //put <p> in it with the text "Remove friend" centered both horizontally and vertically with white color
+        let remfriendp = document.createElement("p");
+        remfriendp.style.textAlign = "center";
+        remfriendp.style.margin = "auto";
+        remfriendp.style.color = "red";
+        remfriendp.style.transition = "all 0.5s ease-in-out";
+
+        remfriendp.innerHTML = "Remove friend";
+        remfriend.onmouseover = function () {
+          remfriend.style.backgroundColor = "#dd3333";
+          remfriendp.style.color = "white";
         };
-        function addUser(data) {
-          amountOfFriends++;
-          let userdiv = document.createElement("div");
-          userdiv.id = "user-" + data.uid;
-          userdiv.classList.add("user");
-          userdiv.classList.add("changeonhover");
-          let friendpfp = document.createElement("div");
-          friendpfp.id = "friend-pfp-" + data.uid;
-          friendpfp.classList.add("friend-pfp");
-          let friendpfpimg = document.createElement("img");
-          friendpfpimg.src = data.avatar;
-          friendpfpimg.classList.add("pfp-pic");
-          friendpfpimg.id = "friendpfp-" + data.uid;
-          let friendtransparentOutline = document.createElement("div");
-          friendtransparentOutline.id =
-            "friend-transparentOutline-" + data.uid;
-          friendtransparentOutline.classList.add("transparentOutline");
-          friendtransparentOutline.style.display = "block";
-          friendtransparentOutline.style.position = "absolute";
-          friendtransparentOutline.style.top = "27px";
-          friendtransparentOutline.style.left = "28px";
-          let friendstatus = document.createElement("img");
-          friendstatus.id = "friend-statusicon-" + data.uid;
-          friendstatus.src = data.statusIcon;
-          friendstatus.classList.add("status-pfp");
-          friendstatus.style.position = "absolute";
-          friendstatus.style.top = "24px";
-          friendstatus.style.left = "22px";
-          let friendname = document.createElement("p");
-          friendname.id = "friend-name-" + data.uid;
-          friendname.classList.add("friend-name");
-          friendname.style.top = -64 + 55 * amountOfFriends + "px";
-          friendname.style.left = "60px";
-          friendname.innerHTML = data.name; // change to username later
-          let friendstatusp = document.createElement("p");
-          friendstatusp.id = "friend-status-" + data.uid;
-          friendstatusp.classList.add("friend-status");
-          friendstatusp.style.top = -42 + 55 * amountOfFriends + "px";
-          friendstatusp.style.left = "60px";
-          friendstatusp.innerHTML = data.status; // change to status later
-          friendpfp.appendChild(friendpfpimg);
-          friendpfp.appendChild(friendtransparentOutline);
-          friendpfp.appendChild(friendstatus);
-          userdiv.appendChild(friendpfp);
-          userdiv.appendChild(friendname);
-          userdiv.appendChild(friendstatusp);
-          document.getElementById("friend-list").appendChild(userdiv);
-        }
-        let app;
-        if (firebase.apps.length) {
-          app = firebase.app();
-        } else {
-          app = await firebase.initializeApp(firebaseConfig);
-        }
-        let currentUser = {};
-        let serverLastUpdate = null;
-        let serverUpdateTimer = null;
-        $(window).unload(function () {
-          socket.disconnect(); // Disconnects the user when the page is being closed
-        });
-        function launchSocket() {
-          socket.on("connect", async function () {
-            console.log("Connected, my socket id: %s", socket.id);
-            mySocketId = socket.id;
-            await firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
-            socket.emit("userIdent", {
-              // Identifies the user to the server using firebases token
-              token: firebase?.auth()?.currentUser?.xa,
-            });
-            //
-          });
-          socket.on("userIdentRes", function (data) {
-            // Executes when the server responds to the client indentification request
-            // Returns: {err: "<error message>"} if failed. Otherwise, returns {success: true, user: {uid: <users uid>, username: <username>, email: <email>, avatar: <avatar url>, status: <status>, statusImg: <status image url>}}
-            if (data.err == "Token expired") {
-              socket.disconnect(); // Disconnects the user when the token is expired
-              window.location.href = "./login.html"; // Redirects the user to the login page
-            }
-            console.log("UserIdent sent, response:", data);
-            currentUser = data.user;
-            socket.emit("getStatus", {
-              imgloc: "/webchat-imgs/",
-              token: firebase?.auth()?.currentUser?.xa,
-            }); // Requests the status of the user
-            checkUpdateStart(); // Starts the update checker
-            socket.emit("getKnown", {
-              token: firebase?.auth()?.currentUser?.xa,
-            });
-          });
-          function checkUpdateStart() {
-            socket.emit("lastUpdate");
-            serverUpdateTimer = setInterval(() => {
-              if (!document.hidden) {
-                socket.emit("lastUpdate");
+        remfriend.onmouseout = function () {
+          remfriend.style.backgroundColor = "";
+          remfriendp.style.color = "red";
+        };
+
+        //new div with id "view-profile" that has the same properties as remfriend except for the margin-bottom, border and background color
+        let viewprofile = document.createElement("div");
+        viewprofile.id = "view-profile";
+        viewprofile.style.position = "absolute";
+        viewprofile.style.bottom = "top";
+        viewprofile.style.width = "100%";
+        viewprofile.style.height = "40px";
+        // viewprofile.style.backgroundColor = "#33ff33";
+        //display justify-content-center
+        viewprofile.style.display = "flex";
+        viewprofile.style.justifyContent = "center";
+        viewprofile.style.alignItems = "center";
+        viewprofile.style.marginTop = "20px";
+        //border should be a seperator line
+        viewprofile.style.border = "1px solid #000";
+        viewprofile.dataset.uid = data.uid;
+
+        let viewprofilep = document.createElement("p");
+        viewprofilep.style.textAlign = "center";
+        viewprofilep.style.margin = "auto";
+        viewprofilep.style.color = "black";
+        viewprofilep.style.transition = "all 0.5s ease-in-out";
+        //text "View profile"
+        viewprofilep.innerHTML = "View profile";
+        // attach
+
+        viewprofile.appendChild(viewprofilep);
+        remfriend.appendChild(remfriendp);
+
+        //on hover change background color of remfriend to #ff3333 and remfriendp text color to white in an animation
+        menudiv.appendChild(viewprofile);
+        menudiv.appendChild(remfriend);
+
+        return menudiv;
+      }
+    </script>
+    <script>
+      //on window load
+      window.onload = () => {
+        (async () => {
+          /* prettier-ignore */
+          var setIdleTimer=function(){function a(){"online"==currentUser.status&&socket.emit("changeStatus",{status:"idle",token:firebase?.auth()?.currentUser?.xa})}function b(){c&&(socket.emit("changeStatus",{token:firebase?.auth()?.currentUser?.xa,status:c}),c=null),clearTimeout(d),d=setTimeout(a,3e5)}let c=null;var d;document.onload=b,document.onmousemove=b,document.onmousedown=b,document.ontouchstart=b,document.onclick=b,document.onkeydown=b,document.addEventListener("scroll",b,!0)};
+          setIdleTimer();
+          document.body.addEventListener("click", (e) => {
+            if (document.getElementsByName("user-menu")) {
+              // remove all user-menu's when clicked outside
+              if (!e.target.closest("[name=user-menu]")) {
+                document.getElementsByName("user-menu").forEach((el) => {
+                  el.remove();
+                });
               }
-            }, 30000);
-          }
-          socket.on("lastUpdateRes", function (data) {
-            if (!serverLastUpdate) {
-              serverLastUpdate = data.lastUpdateTime;
-            }
-            if (serverLastUpdate != data.lastUpdateTime) {
-              console.log("Update from server:", data);
-              clearInterval(serverUpdateTimer);
-              socket.disconnect;
-              return window.location.reload(true);
             }
           });
-          socket.on("disconnect", function () {
-            // Executes when the client disconnects from the server
-            // Returns: nothing.
-            clearInterval(serverUpdateTimer);
-            console.log("Disconnected");
-          });
-          socket.on("changeStatusRes", function (data) {
-            // Executes when the server responds to clients request to change status
-            // Returns: {err: "<errormsg>"} if fails else returns {success: true, status: <new status>, statusImg: <status image location>}
-            document.getElementById("userstatuspfp").src = data.statusImg;
-            document.getElementById("userstatus").src = data.statusImg;
-            currentUser.status = data.status;
-          });
-          socket.on("usrChangeStatus", function (data) {
-            // Executes when a user changes their status.
-            // Returns: {uid: <user uid>, statusText: <status text>, status: <new status>, statusImg: <status image location>}
-            let statusText = data.statusText || "";
-            if (document.getElementById("friend-statusicon-" + data.uid)) {
-              document.getElementById("friend-statusicon-" + data.uid).src =
-                data.statusImg;
-              document.getElementById("friend-status-" + data.uid).innerText =
-                statusText;
-            }
-          });
-          socket.on("getStatusRes", function (data) {
-            // Executes when the server reponds to a client request to get the status of a user
-            // Returns: {err: "<errormsg>"} if fails else returns {uid: <user uid>, status: <user status>, success: true, statusImg: <status image location>}
-            document.getElementById("userstatuspfp").src = data.statusImg;
-            document.getElementById("userstatus").src = data.statusImg;
-            document.getElementById("transparentOutline").style.display =
-              "block";
-          });
-          socket.on("getInfoRes", function (data) {
-            // check if uid matches our uid, if so return
-            if (data.err) {
-              console.log("Error:", data.err);
-              return;
-            }
-            if (data.uid == currentUser.uid) return;
-            // if not, check if uid is in friend list, if so return
-            if (document.getElementById("friend-pfp-" + data.uid)) return;
-            // add user to friend list using addUser function with the data variable passed in
+          let amountOfFriends = 0;
+          // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
+
+          const firebaseConfig = {
+            apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
+            authDomain: "authworria.firebaseapp.com",
+            databaseURL:
+              "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "authworria",
+            storageBucket: "authworria.appspot.com",
+            messagingSenderId: "635623599897",
+            appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
+            measurementId: "G-P84R1SCWJB",
+          };
+          async function addUser(data) {
             console.log(data);
-            addUser(data);
-            console.log("User added:", data.uid + " (" + data.name + ")");
-          });
-          socket.on("getKnownRes", async function (data) {
-            // Executes when the server requests the list of known users
-            // Returns: {err: "<errormsg>"} if fails else returns {uid:<user uid>, knownUsers:[<friend uid 1>, <friend uid 2>, ...]}
-            console.log("getKnown sent, response:", data);
-            if (data.err) {
-              console.log("Error:", data.err);
-            } else {
-              console.log("Known users:", data.knownUsers);
-              for (let i = 0; i < data.knownUsers.length; i++) {
-                await socket.emit("getInfo", {
-                  uid: data.knownUsers[i],
-                  token: firebase?.auth()?.currentUser?.xa,
+            amountOfFriends++;
+            let userdiv = document.createElement("div");
+            userdiv.id = "user-" + data.uid;
+            userdiv.classList.add("user");
+            userdiv.classList.add("changeonhover");
+            userdiv.addEventListener(
+              "contextmenu",
+              async function (ev) {
+                if (!ev.isTrusted) {
+                  return;
+                }
+                ev.preventDefault();
+                if (!ev.clientX || !ev.clientY) {
+                  return false;
+                }
+                document.getElementsByName("user-menu").forEach((el) => {
+                  el.remove();
                 });
+                // create a new div at the mouse position
+                let div = document.createElement("div");
+                // make the div at mouse pos
+                div.style.left = ev.clientX + "px";
+                div.style.top = ev.clientY + "px";
+                div.setAttribute("name", "user-menu");
+                //make the div have rounded corners and make the div 200x600 px
+                div.style.borderRadius = "10px";
+                div.style.width = "200px";
+                div.style.height = "600px";
+                div.style.backgroundColor = "#292b30";
+                //border
+                div.style.border = "1px solid #000";
+                //remove element on blur
+                div.addEventListener("blur", function () {
+                  div.remove();
+                });
+                //z index of 20
+                div.style.zIndex = "20";
+                //position absolute
+                div.style.position = "relative";
+
+                div = await generateUserMenu(div, data);
+
+                //attach the div to the body
+                document.body.appendChild(div);
+
+                return false;
+              },
+              false
+            );
+            let friendpfp = document.createElement("div");
+            friendpfp.id = "friend-pfp-" + data.uid;
+            friendpfp.classList.add("friend-pfp");
+            let friendpfpimg = document.createElement("img");
+            friendpfpimg.src = data.avatar;
+            friendpfpimg.classList.add("pfp-pic");
+            friendpfpimg.id = "friendpfp-" + data.uid;
+            let friendtransparentOutline = document.createElement("div");
+            friendtransparentOutline.id =
+              "friend-transparentOutline-" + data.uid;
+            friendtransparentOutline.classList.add("transparentOutline");
+            friendtransparentOutline.style.display = "block";
+            friendtransparentOutline.style.position = "absolute";
+            friendtransparentOutline.style.top = "27px";
+            friendtransparentOutline.style.left = "28px";
+            let friendstatus = document.createElement("img");
+            friendstatus.id = "friend-statusicon-" + data.uid;
+            friendstatus.src = data.statusIcon;
+            friendstatus.classList.add("status-pfp");
+            friendstatus.style.position = "absolute";
+            friendstatus.style.top = "24px";
+            friendstatus.style.left = "22px";
+            let friendname = document.createElement("p");
+            friendname.id = "friend-name-" + data.uid;
+            friendname.classList.add("friend-name");
+            friendname.style.top = -64 + 55 * amountOfFriends + "px";
+            friendname.style.left = "60px";
+            friendname.innerHTML = data.name; // change to username later
+            let friendstatusp = document.createElement("p");
+            friendstatusp.id = "friend-status-" + data.uid;
+            friendstatusp.classList.add("friend-status");
+            friendstatusp.style.top = -42 + 55 * amountOfFriends + "px";
+            friendstatusp.style.left = "60px";
+            console.log(
+              "Width in PX of UID: " +
+                data.uid +
+                "'s status is:" +
+                getTextWidth(data.status, getCanvasFontSize(friendstatusp)) +
+                "px"
+            );
+            if (
+              getTextWidth(data.status, getCanvasFontSize(friendstatusp)) >
+              250 - 9
+            ) {
+              console.log("Status too long, trimming...");
+              // if the status is too long, shorten it until its less than 200 pixels minus the size of "..." (9 px) and add ...
+              let status = data.status;
+              while (
+                getTextWidth(status, getCanvasFontSize(friendstatusp)) >
+                250 - 9
+              ) {
+                status = status.substring(0, status.length - 1);
               }
+              friendstatusp.innerText = status + "...";
+              console.log(
+                "Status trimmed to: " +
+                  status +
+                  "... with a width of: " +
+                  getTextWidth(
+                    status + "...",
+                    getCanvasFontSize(friendstatusp)
+                  ) +
+                  "px"
+              );
+            } else {
+              friendstatusp.innerText = data.status;
+            }
+            friendpfp.appendChild(friendpfpimg);
+            friendpfp.appendChild(friendtransparentOutline);
+            friendpfp.appendChild(friendstatus);
+            userdiv.appendChild(friendpfp);
+            userdiv.appendChild(friendname);
+            userdiv.appendChild(friendstatusp);
+            document.getElementById("friend-list").appendChild(userdiv);
+          }
+          let app;
+          if (firebase.apps.length) {
+            app = firebase.app();
+          } else {
+            app = await firebase.initializeApp(firebaseConfig);
+          }
+          let currentUser = {};
+          let serverLastUpdate = null;
+          let serverUpdateTimer = null;
+          $(window).unload(function () {
+            socket.disconnect(); // Disconnects the user when the page is being closed
+          });
+          function launchSocket() {
+            socket.on("connect", async function () {
+              console.log("Connected, my socket id: %s", socket.id);
+              mySocketId = socket.id;
+              await firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
+              socket.emit("userIdent", {
+                // Identifies the user to the server using firebases token
+                token: firebase?.auth()?.currentUser?.xa,
+              });
+              //
+            });
+            socket.on("userIdentRes", function (data) {
+              // Executes when the server responds to the client indentification request
+              // Returns: {err: "<error message>"} if failed. Otherwise, returns {success: true, user: {uid: <users uid>, username: <username>, email: <email>, avatar: <avatar url>, status: <status>, statusImg: <status image url>}}
+              if (data.err == "Token expired") {
+                socket.disconnect(); // Disconnects the user when the token is expired
+                window.location.href = "./login.html"; // Redirects the user to the login page
+              }
+              console.log("UserIdent sent, response:", data);
+              currentUser = data.user;
+              socket.emit("getStatus", {
+                imgloc: "/webchat-imgs/",
+                token: firebase?.auth()?.currentUser?.xa,
+              }); // Requests the status of the user
+              checkUpdateStart(); // Starts the update checker
+              socket.emit("getKnown", {
+                token: firebase?.auth()?.currentUser?.xa,
+              });
+            });
+            function checkUpdateStart() {
+              socket.emit("lastUpdate");
+              serverUpdateTimer = setInterval(() => {
+                if (!document.hidden && resetUponUpdate) {
+                  socket.emit("lastUpdate");
+                }
+              }, 30000);
+            }
+            socket.on("lastUpdateRes", function (data) {
+              if (!serverLastUpdate) {
+                serverLastUpdate = data.lastUpdateTime;
+              }
+              if (serverLastUpdate != data.lastUpdateTime && resetUponUpdate) {
+                console.log("Update from server:", data);
+                clearInterval(serverUpdateTimer);
+                socket.disconnect;
+                return window.location.reload(true);
+              }
+            });
+            socket.on("getInfoProfRes", function (data) {
+              const badgeResolver = {
+                CAD: {
+                  name: "Certified Authworria Developer",
+                  short: "CAD",
+                  img_colored: "/img/CAD.png",
+                  img_grayscale: "/img/CAD_bw.png",
+                },
+                AS: {
+                    name: "Authworria Staff",
+                    short: "AS",
+                    img_colored: "/img/AS.png", 
+                    img_grayscale: "/img/AS_bw.png",
+                }
+              };
+              if (data.err) return;
+              if (data.user.badges.length > 0) {
+                console.log("Parsing badges....");
+                for (let i of data.user.badges) {
+                    let badge = badgeResolver[i];
+                    console.log("Badge detected: " + badge.short + ". Long name: " + badge.name);
+                }
+              }
+            });
+            socket.on("disconnect", function () {
+              // Executes when the client disconnects from the server
+              // Returns: nothing.
+              clearInterval(serverUpdateTimer);
+              console.log("Disconnected");
+            });
+            socket.on("changeStatusRes", function (data) {
+              // Executes when the server responds to clients request to change status
+              // Returns: {err: "<errormsg>"} if fails else returns {success: true, status: <new status>, statusImg: <status image location>}
+              if (data.err) return;
+              if (currentUser.status !== data.status) {
+                document.getElementById("userstatuspfp").src = data.statusImg;
+                document.getElementById("userstatus").src = data.statusImg;
+              }
+              console.log("Status changed to:", data.statusText);
+              if (
+                getTextWidth(
+                  data.status,
+                  getCanvasFontSize(document.getElementById("profile-status"))
+                ) >
+                200 - 9
+              ) {
+                console.log("Status too long, trimming...");
+                // if the status is too long, shorten it until its less than 200 pixels minus the size of "..." (9 px) and add ...
+                let status = data.statusText;
+                while (
+                  getTextWidth(
+                    status,
+                    getCanvasFontSize(document.getElementById("profile-status"))
+                  ) >
+                  200 - 9
+                ) {
+                  status = status.substring(0, status.length - 1);
+                }
+                document.getElementById("profile-status").innerText =
+                  status + "...";
+                console.log(
+                  "Status trimmed to: " +
+                    status +
+                    "... with a width of: " +
+                    getTextWidth(
+                      status + "...",
+                      getCanvasFontSize(
+                        document.getElementById("profile-status")
+                      )
+                    ) +
+                    "px"
+                );
+              } else {
+                document.getElementById("profile-status").innerText =
+                  data.statusText;
+                console.log(
+                  "Status didn't need to be trimmed, it's width is: %s",
+                  getTextWidth(
+                    data.statusText,
+                    getCanvasFontSize(document.getElementById("profile-status"))
+                  )
+                );
+              }
+              currentUser.status = data.status;
+            });
+            socket.on("usrChangeStatus", function (data) {
+              // Executes when a user changes their status.
+              // Returns: {uid: <user uid>, statusText: <status text>, status: <new status>, statusImg: <status image location>}
+              let statusText = data.statusText || "";
+              if (document.getElementById("friend-statusicon-" + data.uid)) {
+                document.getElementById("friend-statusicon-" + data.uid).src =
+                  data.statusImg;
+                if (
+                  getTextWidth(
+                    data.status,
+                    getCanvasFontSize(
+                      document.getElementById("friend-status-" + data.uid)
+                    )
+                  ) >
+                  250 - 9
+                ) {
+                  console.log("Status too long, trimming...");
+                  // if the status is too long, shorten it until its less than 200 pixels minus the size of "..." (9 px) and add ...
+                  let status = statusText;
+                  while (
+                    getTextWidth(
+                      status,
+                      getCanvasFontSize(
+                        document.getElementById("friend-status-" + data.uid)
+                      )
+                    ) >
+                    250 - 9
+                  ) {
+                    status = status.substring(0, status.length - 1);
+                  }
+                  statusText = status + "...";
+                  console.log(
+                    "Status trimmed to: " +
+                      status +
+                      "... with a width of: " +
+                      getTextWidth(
+                        status + "...",
+                        getCanvasFontSize(
+                          document.getElementById("friend-status-" + data.uid)
+                        )
+                      ) +
+                      "px"
+                  );
+                }
+                document.getElementById("friend-status-" + data.uid).innerHTML =
+                  escapeString(statusText);
+              }
+            });
+            socket.on("getStatusRes", function (data) {
+              // Executes when the server reponds to a client request to get the status of a user
+              // Returns: {err: "<errormsg>"} if fails else returns {uid: <user uid>, status: <user status>, success: true, statusImg: <status image location>}
+              document.getElementById("userstatuspfp").src = data.statusImg;
+              document.getElementById("userstatus").src = data.statusImg;
+              document.getElementById("transparentOutline").style.display =
+                "block";
+              let userstatusp = document.getElementById("profile-status");
+
+              if (
+                getTextWidth(data.statusText, getCanvasFontSize(userstatusp)) >
+                200 - 9
+              ) {
+                console.log("Status too long, trimming...");
+                // if the status is too long, shorten it until its less than 200 pixels minus the size of "..." (9 px) and add ...
+                let status = data.statusText;
+                while (
+                  getTextWidth(status, getCanvasFontSize(userstatusp)) >
+                  200 - 9
+                ) {
+                  status = status.substring(0, status.length - 1);
+                }
+                userstatusp.innerText = status + "...";
+                console.log(
+                  "Status trimmed to: " +
+                    status +
+                    "... with a width of: " +
+                    getTextWidth(
+                      status + "...",
+                      getCanvasFontSize(userstatusp)
+                    ) +
+                    "px"
+                );
+              } else {
+                userstatusp.innerText = data.statusText;
+              }
+            });
+            socket.on("getInfoRes", function (data) {
+              // check if uid matches our uid, if so return
+              if (data.err) {
+                console.log("Error:", data.err);
+                return;
+              }
+              if (data.uid == currentUser.uid) return;
+              // if not, check if uid is in friend list, if so return
+              if (document.getElementById("friend-pfp-" + data.uid)) return;
+              // add user to friend list using addUser function with the data variable passed in
+              console.log(data);
+              addUser(data);
+              console.log("User added:", data.uid + " (" + data.name + ")");
+            });
+            socket.on("getKnownRes", async function (data) {
+              // Executes when the server requests the list of known users
+              // Returns: {err: "<errormsg>"} if fails else returns {uid:<user uid>, knownUsers:[<friend uid 1>, <friend uid 2>, ...]}
+              console.log("getKnown sent, response:", data);
+              if (data.err) {
+                console.log("Error:", data.err);
+              } else {
+                console.log("Known users:", data.knownUsers);
+                for (let i = 0; i < data.knownUsers.length; i++) {
+                  await socket.emit("getInfo", {
+                    uid: data.knownUsers[i],
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                }
+              }
+            });
+            socket.on("updateAbtMeRes", function (data) {
+              // Executes when the server responds to a client request to update the user's about me
+              // Returns: {err: "<errormsg>"} if fails else returns {uid: <user uid>, aboutMe: <new about me>}
+              if (data.err) {
+                console.log("Error:", data.err);
+              } else {
+                console.log("About me updated to:", data.aboutme);
+                currentUser.aboutMe = data.aboutme;
+              }
+            });
+            socket.on("sendMessageRes", function (data) {
+              // Executes when the server responds to a client request to send a message
+              // Returns: {err: "<errormsg>"} if fails else returns {success: true, message: <message>, sender: <sender>, senderUID: <senders UID>, senderImg: <senders pfp>, time: <time>}
+              if (data.err) {
+                if (data.err == "over 2000 characters") {
+                  document
+                    .getElementById("temp-msg-" + data.messageId)
+                    .classList.remove("pending");
+                  document.getElementById(
+                    "temp-msg-" + data.messageId
+                  ).style.color = "#ff0000";
+                  return;
+                }
+              }
+              document
+                .getElementById("temp-msg-" + data.messageId)
+                .classList.remove("pending");
+              document
+                .getElementById("temp-msg-" + data.messageId)
+                .removeAttribute("class");
+              document.getElementById("temp-msg-" + data.messageId).innerHTML =
+                data.sender + ": " + data.message;
+              document.getElementById("temp-msg-" + data.messageId).id =
+                "message-" + data.messageId;
+            });
+            socket.on("receiveMessage", function (data) {
+              // Executes when the client receives a message
+              // Returns: {message: <message>, sender: <sender>, senderUID: <senders UID> senderImg: <senders pfp>, time: <time>}
+
+              document.getElementById("messageList").innerHTML +=
+                "<li id='message-" +
+                data.messageId +
+                "'>" +
+                escapeString(data.sender) +
+                ": " +
+                data.message +
+                "</li>";
+              document.getElementById("messageList").innerHTML += "<br> ";
+              //scroll
+              document.getElementById("messageList").scrollTop =
+                document.getElementById("messageList").scrollHeight;
+            });
+            socket.on("getMessagesRes", function (data) {
+              // Executes when the server responds to a client request to get messages in a certain limit
+              // Returns: {err: "<errormsg>"} if fails else returns {success: true, messages: [{message: <message>, sender: <sender>, senderImg: <senders pfp>, time: <time>}, ...]}
+            });
+          }
+
+          let failedConnections = 0;
+          // check if the user is logged in
+          firebase.auth().onAuthStateChanged(async function (user) {
+            if (user) {
+              // User is signed in.
+              firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
+              socket = await io("https://ws.inimicalpart.com:4242");
+              socket.on("connect_error", (err) => {
+                console.log("failed to connect to server");
+                failedConnections++;
+                if (failedConnections == 3) {
+                  console.log("failed to connect to server 3 times");
+
+                  Swal.fire({
+                    title: "Failed to connect to server",
+                    text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
+                    icon: "error",
+                    //add a gradient to the ba background of dark colors
+                    background: "#292b30",
+                    customClass: {
+                      title: "whiteTextTitle",
+                      htmlContainer: "grayTextTitle",
+                    },
+                    showCloseButton: false,
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                  });
+                  socket.on("connect", () => {
+                    console.log("connected to server");
+                    failedConnections = 0;
+                    Swal.close();
+                  });
+                }
+              });
+              socket.on("connect_failed", (err) => {
+                console.log("failed to connect to server");
+                failedConnections++;
+                if (failedConnections == 3) {
+                  console.log("failed to connect to server 3 times");
+
+                  Swal.fire({
+                    title: "Failed to connect to server",
+                    text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
+                    icon: "error",
+                    //add a gradient to the ba background of dark colors
+                    background: "#292b30",
+                    customClass: {
+                      title: "whiteTextTitle",
+                      htmlContainer: "grayTextTitle",
+                    },
+                    showCloseButton: false,
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                  });
+                  socket.on("connect", () => {
+                    console.log("connected to server");
+                    failedConnections = 0;
+                    Swal.close();
+                  });
+                }
+              });
+              document.getElementById("loading").style.display = "none";
+              document.getElementById("app").style.display = "block";
+
+              showUserDetail(user);
+              launchSocket();
+              continueSetup();
+            } else {
+              // No user is signed in.
+              window.location.href = "./login.html";
             }
           });
-          socket.on("sendMessageRes", function (data) {
-            // Executes when the server responds to a client request to send a message
-            // Returns: {err: "<errormsg>"} if fails else returns {success: true, message: <message>, sender: <sender>, senderUID: <senders UID>, senderImg: <senders pfp>, time: <time>}
-            if (data.err) return console.log(data.err);
-            document
-              .getElementById("temp-msg-" + data.messageId)
-              .classList.remove("pending");
-            document
-              .getElementById("temp-msg-" + data.messageId)
-              .removeAttribute("class");
-            document.getElementById("temp-msg-" + data.messageId).innerHTML =
-              data.sender + ": " + data.message;
-            document.getElementById("temp-msg-" + data.messageId).id =
-              "message-" + data.messageId;
-          });
-          socket.on("receiveMessage", function (data) {
-            // Executes when the client receives a message
-            // Returns: {message: <message>, sender: <sender>, senderUID: <senders UID> senderImg: <senders pfp>, time: <time>}
-
-            document.getElementById("messageList").innerHTML +=
-              "<li id='message-" +
-              data.messageId +
-              "'>" +
-              escapeString(data.sender) +
-              ": " +
-              data.message +
-              "</li>";
-            document.getElementById("messageList").innerHTML += "<br> ";
-            //scroll
-            document.getElementById("messageList").scrollTop =
-              document.getElementById("messageList").scrollHeight;
-          });
-          socket.on("getMessagesRes", function (data) {
-            // Executes when the server responds to a client request to get messages in a certain limit
-            // Returns: {err: "<errormsg>"} if fails else returns {success: true, messages: [{message: <message>, sender: <sender>, senderImg: <senders pfp>, time: <time>}, ...]}
-          });
-        }
-        let failedConnections = 0;
-        // check if the user is logged in
-        firebase.auth().onAuthStateChanged(async function (user) {
-          if (user) {
-            // User is signed in.
-            firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
-            socket = await io("https://ws.inimicalpart.com:4242");
-            socket.on("connect_error", (err) => {
-              console.log("failed to connect to server");
-              failedConnections++;
-              if (failedConnections == 3) {
-                console.log("failed to connect to server 3 times");
-
-                Swal.fire({
-                  title: "Failed to connect to server",
-                  text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
-                  icon: "error",
-                  //add a gradient to the ba background of dark colors
-                  background: "#292b30",
-                  customClass: {
-                    title: "whiteTextTitle",
-                    htmlContainer: "grayTextTitle",
-                  },
-                  showCloseButton: false,
-                  showCancelButton: false,
-                  showConfirmButton: false,
-                  allowOutsideClick: false,
-                  allowEscapeKey: false,
-                });
-                socket.on("connect", () => {
-                  console.log("connected to server");
-                  failedConnections = 0;
-                  Swal.close();
-                });
-              }
-            });
-            socket.on("connect_failed", (err) => {
-              console.log("failed to connect to server");
-              failedConnections++;
-              if (failedConnections == 3) {
-                console.log("failed to connect to server 3 times");
-
-                Swal.fire({
-                  title: "Failed to connect to server",
-                  text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
-                  icon: "error",
-                  //add a gradient to the ba background of dark colors
-                  background: "#292b30",
-                  customClass: {
-                    title: "whiteTextTitle",
-                    htmlContainer: "grayTextTitle",
-                  },
-                  showCloseButton: false,
-                  showCancelButton: false,
-                  showConfirmButton: false,
-                  allowOutsideClick: false,
-                  allowEscapeKey: false,
-                });
-                socket.on("connect", () => {
-                  console.log("connected to server");
-                  failedConnections = 0;
-                  Swal.close();
-                });
-              }
-            });
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("app").style.display = "block";
-
-            showUserDetail(user);
-            launchSocket();
-            continueSetup();
-          } else {
-            // No user is signed in.
-            window.location.href = "./login.html";
+          function getTextWidth(text, font) {
+            // re-use canvas object for better performance
+            const canvas =
+              getTextWidth.canvas ||
+              (getTextWidth.canvas = document.createElement("canvas"));
+            const context = canvas.getContext("2d");
+            context.font = font;
+            const metrics = context.measureText(text);
+            return metrics.width;
           }
-        });
 
-        function showUserDetail(user) {
-          document.getElementById("profile-img").innerHTML += `
+          function getCssStyle(element, prop) {
+            return window
+              .getComputedStyle(element, null)
+              .getPropertyValue(prop);
+          }
+
+          function getCanvasFontSize(el = document.body) {
+            const fontWeight = getCssStyle(el, "font-weight") || "normal";
+            const fontSize = getCssStyle(el, "font-size") || "16px";
+            const fontFamily =
+              getCssStyle(el, "font-family") || "Times New Roman";
+
+            return `${fontWeight} ${fontSize} ${fontFamily}`;
+          }
+
+          function showUserDetail(user) {
+            document.getElementById("profile-img").innerHTML += `
         <img id="pfp" src=${user.photoURL}></img>
         `;
-          document.getElementById("profile-username").innerHTML += `
+            document.getElementById("profile-username").innerHTML += `
         <span id="username"><b>${escapeString(user.displayName)}</b></span>
         `;
-        }
+          }
 
-        function escapeString(str) {
-          // escape string for html
-          return str
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-        }
-        function continueSetup() {
-          document
-            .getElementById("messageBox")
-            .addEventListener("keyup", function (event) {
-              if (event.keyCode === 13) {
-                event.preventDefault();
-                sendMessage();
-              }
-            });
           function escapeString(str) {
             // escape string for html
             return str
@@ -366,799 +718,680 @@
               .replace(/"/g, "&quot;")
               .replace(/'/g, "&#039;");
           }
-
-          function makeID(length) {
-            var result = "";
-            var characters = "0123456789";
-            var charactersLength = characters.length;
-            for (var i = 0; i < length; i++) {
-              result += characters.charAt(
-                Math.floor(Math.random() * charactersLength)
-              );
-            }
-            return result;
-          }
-          function sendMessage() {
-            var message = document.getElementById("messageBox").value;
-            if (message != "") {
-              let randomId = makeID(16);
-              socket.emit("sendMessage", {
-                message: escapeString(message),
-                randomId: randomId,
-                sender: socket.id,
-                token: firebase?.auth()?.currentUser?.xa,
+          function continueSetup() {
+            document
+              .getElementById("messageBox")
+              .addEventListener("keyup", function (event) {
+                if (event.keyCode === 13) {
+                  event.preventDefault();
+                  sendMessage();
+                }
               });
+            function escapeString(str) {
+              // escape string for html
+              return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+            }
 
-              document.getElementById("messageList").innerHTML +=
-                "<li id='temp-msg-" +
-                randomId +
-                "' class='pending'>" +
-                escapeString(message) +
-                "</li>";
-              document.getElementById("messageList").innerHTML += "<br> ";
-              //scroll
-              document.getElementById("messageList").scrollTop =
-                document.getElementById("messageList").scrollHeight;
+            function makeID(length) {
+              var result = "";
+              var characters = "0123456789";
+              var charactersLength = characters.length;
+              for (var i = 0; i < length; i++) {
+                result += characters.charAt(
+                  Math.floor(Math.random() * charactersLength)
+                );
+              }
+              return result;
+            }
+            function sendMessage() {
+              var message = document.getElementById("messageBox").value; //.trimStart().trimEnd();//.trim();
+
+              if (message != "") {
+                let randomId = makeID(16);
+                socket.emit("sendMessage", {
+                  message: escapeString(message),
+                  randomId: randomId,
+                  sender: socket.id,
+                  token: firebase?.auth()?.currentUser?.xa,
+                });
+
+                document.getElementById("messageList").innerHTML +=
+                  "<li id='temp-msg-" +
+                  randomId +
+                  "' class='pending'>" +
+                  escapeString(message) +
+                  "</li>";
+                document.getElementById("messageList").innerHTML += "<br> ";
+                //scroll
+                document.getElementById("messageList").scrollTop =
+                  document.getElementById("messageList").scrollHeight;
+              }
               document.getElementById("messageBox").value = "";
             }
-          }
-          document
-            .getElementById("signout")
-            .addEventListener("click", function () {
-              firebase.auth().signOut();
-            });
+            document
+              .getElementById("signout")
+              .addEventListener("click", function () {
+                firebase.auth().signOut();
+              });
 
-          window.document
-            .getElementsByClassName("dropbtn")[0]
-            .addEventListener("click", function () {
-              if (
-                document.getElementById("dropdown-content").style.display ==
-                "block"
-              ) {
+            window.document
+              .getElementsByClassName("dropbtn")[0]
+              .addEventListener("click", function () {
+                if (
+                  document.getElementById("dropdown-content").style.display ==
+                  "block"
+                ) {
+                  document.getElementById("dropdown-content").style.display =
+                    "none";
+                } else {
+                  document.getElementById("dropdown-content").style.display =
+                    "block";
+                }
+              });
+
+            //upon clicking on the "statusBtn" div, hide dropdown-content and show statusChange
+            document
+              .getElementById("statusBtn")
+              .addEventListener("click", function () {
                 document.getElementById("dropdown-content").style.display =
                   "none";
-              } else {
+                document.getElementById("statusChange").style.display = "block";
+              });
+            //   document
+            //   .getElementById("view-profile")
+            //   .addEventListener("click", function (ev) {
+            //     document.getElementById("user-menu").blur();
+            //     socket.emit("getInfoProf", {
+            //       token: firebase?.auth()?.currentUser?.xa,
+            //       uid: ev?.currentTarget?.dataset?.uid,
+            //     });
+            //   });
+            document
+              .getElementById("statusOnline")
+              .addEventListener("click", function () {
+                if (currentStatus !== "online") {
+                  document.getElementById("statusChange").style.display =
+                    "none";
+                  socket.emit("changeStatus", {
+                    status: "online",
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                }
+              });
+
+            document
+              .getElementById("statusIdle")
+              .addEventListener("click", function () {
+                if (currentUser.status !== "idle") {
+                  document.getElementById("statusChange").style.display =
+                    "none";
+                  socket.emit("changeStatus", {
+                    status: "idle",
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                }
+              });
+            document
+              .getElementById("statusDnd")
+              .addEventListener("click", function () {
+                if (currentUser.status !== "dnd") {
+                  document.getElementById("statusChange").style.display =
+                    "none";
+                  socket.emit("changeStatus", {
+                    status: "dnd",
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                }
+              });
+
+            document
+              .getElementById("statusInvisible")
+              .addEventListener("click", function () {
+                if (currentUser.status !== "invisible") {
+                  document.getElementById("statusChange").style.display =
+                    "none";
+                  socket.emit("changeStatus", {
+                    status: "invisible",
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                }
+              });
+            document
+              .getElementById("customStatus")
+              .addEventListener("click", async function () {
+                document.getElementById("statusChange").style.display = "none";
+                // use sweetalert to get custom status, get an selection type too
+                const { value: formValues } = await Swal.fire({
+                  //   title: "<h3 class='swal2-title' style='color:white'>" + "Custom Status" + "</h3>",
+                  title: "Custom Status",
+                  customClass: {
+                    title: "whiteTextTitle",
+                  },
+                  background: "#292b30",
+                  html:
+                    '<input id="textStatus" class="customStatusInput" placeholder="Support has arrived!">' +
+                    '<select id="status" class="customStatusSelect"><option value="online">Online</option><option value="idle">Idle</option><option value="dnd">Do Not Disturb</option><option value="invisible">Invisible</option></select>',
+                  focusConfirm: false,
+                  preConfirm: () => {
+                    return [
+                      document.getElementById("textStatus").value,
+                      document.getElementById("status").value,
+                    ];
+                  },
+                });
+                if (formValues[1] == currentUser.status) {
+                  socket.emit("changeStatus", {
+                    customStatus: formValues[0],
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                } else {
+                  socket.emit("changeStatus", {
+                    customStatus: formValues[0],
+                    status: formValues[1],
+                    token: firebase?.auth()?.currentUser?.xa,
+                  });
+                }
+              });
+            document
+              .getElementById("dropdown-content")
+              .addEventListener("mouseleave", function () {
                 document.getElementById("dropdown-content").style.display =
-                  "block";
-              }
-            });
-
-          //upon clicking on the "statusBtn" div, hide dropdown-content and show statusChange
-          document
-            .getElementById("statusBtn")
-            .addEventListener("click", function () {
-              document.getElementById("dropdown-content").style.display =
-                "none";
-              document.getElementById("statusChange").style.display = "block";
-            });
-
-          document
-            .getElementById("statusOnline")
-            .addEventListener("click", function () {
-              document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", {
-                status: "online",
-                token: firebase?.auth()?.currentUser?.xa,
+                  "none";
               });
-            });
-
-          document
-            .getElementById("statusIdle")
-            .addEventListener("click", function () {
-              document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", {
-                status: "idle",
-                token: firebase?.auth()?.currentUser?.xa,
+            // do the same for statusChange
+            document
+              .getElementById("statusChange")
+              .addEventListener("mouseleave", function () {
+                document.getElementById("statusChange").style.display = "none";
               });
-            });
-          document
-            .getElementById("statusDnd")
-            .addEventListener("click", function () {
-              document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", {
-                status: "dnd",
-                token: firebase?.auth()?.currentUser?.xa,
-              });
-            });
-
-          document
-            .getElementById("statusInvisible")
-            .addEventListener("click", function () {
-              document.getElementById("statusChange").style.display = "none";
-              socket.emit("changeStatus", {
-                status: "invisible",
-                token: firebase?.auth()?.currentUser?.xa,
-              });
-            });
-          document
-            .getElementById("customStatus")
-            .addEventListener("click", async function () {
-              document.getElementById("statusChange").style.display = "none";
-              // use sweetalert to get custom status, get an selection type too
-              const { value: formValues } = await Swal.fire({
-                //   title: "<h3 class='swal2-title' style='color:white'>" + "Custom Status" + "</h3>",
-                title: "Custom Status",
-                customClass: {
-                  title: "whiteTextTitle",
-                },
-                background: "#292b30",
-                html:
-                  '<input id="textStatus" class="customStatusInput" placeholder="Support has arrived!">' +
-                  '<select id="status" class="customStatusSelect"><option value="online">Online</option><option value="idle">Idle</option><option value="dnd">Do Not Disturb</option><option value="invisible">Invisible</option></select>',
-                focusConfirm: false,
-                preConfirm: () => {
-                  return [
-                    document.getElementById("textStatus").value,
-                    document.getElementById("status").value,
-                  ];
-                },
-              });
-              if (formValues[1] == currentUser.status) {
-                socket.emit("changeStatus", {
-                  customStatus: formValues[0],
-                  token: firebase?.auth()?.currentUser?.xa,
-                });
-              } else {
-                socket.emit("changeStatus", {
-                  customStatus: formValues[0],
-                  status: formValues[1],
-                  token: firebase?.auth()?.currentUser?.xa,
-                });
-              }
-            });
-          document
-            .getElementById("dropdown-content")
-            .addEventListener("mouseleave", function () {
-              document.getElementById("dropdown-content").style.display =
-                "none";
-            });
-          // do the same for statusChange
-          document
-            .getElementById("statusChange")
-            .addEventListener("mouseleave", function () {
-              document.getElementById("statusChange").style.display = "none";
-            });
-        }
-      })();
-    };
-  </script>
-  <div id="loading">
-    <svg class="tea" width="57" height="68" viewbox="0 0 37 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M27.0819 17H3.02508C1.91076 17 1.01376 17.9059 1.0485 19.0197C1.15761 22.5177 1.49703 29.7374 2.5 34C4.07125 40.6778 7.18553 44.8868 8.44856 46.3845C8.79051 46.79 9.29799 47 9.82843 47H20.0218C20.639 47 21.2193 46.7159 21.5659 46.2052C22.6765 44.5687 25.2312 40.4282 27.5 34C28.9757 29.8188 29.084 22.4043 29.0441 18.9156C29.0319 17.8436 28.1539 17 27.0819 17Z"
-        stroke="var(--secondary)" stroke-width="2"></path>
-      <path
-        d="M29 23.5C29 23.5 34.5 20.5 35.5 25.4999C36.0986 28.4926 34.2033 31.5383 32 32.8713C29.4555 34.4108 28 34 28 34"
-        stroke="var(--secondary)" stroke-width="2"></path>
-      <path id="teabag" fill="var(--secondary)" fill-rule="evenodd" clip-rule="evenodd"
-        d="M16 25V17H14V25H12C10.3431 25 9 26.3431 9 28V34C9 35.6569 10.3431 37 12 37H18C19.6569 37 21 35.6569 21 34V28C21 26.3431 19.6569 25 18 25H16ZM11 28C11 27.4477 11.4477 27 12 27H18C18.5523 27 19 27.4477 19 28V34C19 34.5523 18.5523 35 18 35H12C11.4477 35 11 34.5523 11 34V28Z">
-      </path>
-      <path id="steamL" d="M17 1C17 1 17 4.5 14 6.5C11 8.5 11 12 11 12" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round" stroke="var(--secondary)"></path>
-      <path id="steamR" d="M21 6C21 6 21 8.22727 19 9.5C17 10.7727 17 13 17 13" stroke="var(--secondary)"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-    </svg>
-  </div>
-
-  <div id="app">
-    <div id="chat">
-      <div id="messages">
-        <ol id="messageList"></ol>
-      </div>
-      <div id="channelHeader">
-        <!-- <div id="channelName"> -->
-        <!-- <h4>#general</h4> -->
-        <!-- </div> -->
-      </div>
-      <input type="text" placeholder="Message #yourmom" id="messageBox" class="css-input" />
+          }
+        })();
+      };
+    </script>
+    <div id="loading">
+      <svg
+        class="tea"
+        width="57"
+        height="68"
+        viewbox="0 0 37 48"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M27.0819 17H3.02508C1.91076 17 1.01376 17.9059 1.0485 19.0197C1.15761 22.5177 1.49703 29.7374 2.5 34C4.07125 40.6778 7.18553 44.8868 8.44856 46.3845C8.79051 46.79 9.29799 47 9.82843 47H20.0218C20.639 47 21.2193 46.7159 21.5659 46.2052C22.6765 44.5687 25.2312 40.4282 27.5 34C28.9757 29.8188 29.084 22.4043 29.0441 18.9156C29.0319 17.8436 28.1539 17 27.0819 17Z"
+          stroke="var(--secondary)"
+          stroke-width="2"
+        ></path>
+        <path
+          d="M29 23.5C29 23.5 34.5 20.5 35.5 25.4999C36.0986 28.4926 34.2033 31.5383 32 32.8713C29.4555 34.4108 28 34 28 34"
+          stroke="var(--secondary)"
+          stroke-width="2"
+        ></path>
+        <path
+          id="teabag"
+          fill="var(--secondary)"
+          fill-rule="evenodd"
+          clip-rule="evenodd"
+          d="M16 25V17H14V25H12C10.3431 25 9 26.3431 9 28V34C9 35.6569 10.3431 37 12 37H18C19.6569 37 21 35.6569 21 34V28C21 26.3431 19.6569 25 18 25H16ZM11 28C11 27.4477 11.4477 27 12 27H18C18.5523 27 19 27.4477 19 28V34C19 34.5523 18.5523 35 18 35H12C11.4477 35 11 34.5523 11 34V28Z"
+        ></path>
+        <path
+          id="steamL"
+          d="M17 1C17 1 17 4.5 14 6.5C11 8.5 11 12 11 12"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke="var(--secondary)"
+        ></path>
+        <path
+          id="steamR"
+          d="M21 6C21 6 21 8.22727 19 9.5C17 10.7727 17 13 17 13"
+          stroke="var(--secondary)"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
     </div>
-    <div id="account">
-      <div class="dropdown">
-        <div id="friend-list"></div>
-        <div id="serverline"></div>
-        <div id="profileSection">
-          <div id="profile-img" class="dropbtn">
-            <div id="transparentOutline"></div>
-            <img id="userstatuspfp" />
+
+    <div id="app">
+      <div id="chat">
+        <div id="messages">
+          <ol id="messageList"></ol>
+        </div>
+        <div id="channelHeader">
+          <!-- <div id="channelName"> -->
+          <!-- <h4>#general</h4> -->
+          <!-- </div> -->
+        </div>
+        <input
+          type="text"
+          placeholder="Message #global-chat"
+          id="messageBox"
+          class="css-input"
+          autocapitalize="on"
+          autocomplete="off"
+        />
+      </div>
+      <div id="account">
+        <div class="dropdown">
+          <div id="friend-list"></div>
+          <div id="serverline"></div>
+          <div id="profileSection">
+            <div id="profile-img" class="dropbtn">
+              <div id="transparentOutline"></div>
+              <img id="userstatuspfp" />
+            </div>
+            <div id="profile-username"></div>
+            <p
+              id="profile-status"
+              style="top: 20px; left: 60px"
+              class="user-status"
+            ></p>
           </div>
-          <div id="profile-username"></div>
-        </div>
-        <div id="dropdown-content">
-          <a href="login.html">Account</a>
-          <a href="#" id="statusBtn">Status <img id="userstatus" /></a>
-          <a href="login.html">
-            <div id="signout">Sign Out</div>
-          </a>
-        </div>
-        <div id="statusChange">
-          <a href="#" id="customStatus">Set a custom status</a>
-          <a href="#" id="statusOnline">Online <img src="/webchat-imgs/status_online.svg" /></a>
-          <a href="#" id="statusIdle">Idle <img src="/webchat-imgs/status_idle.svg" /></a>
-          <a href="#" id="statusDnd">Do not disturb <img src="/webchat-imgs/status_dnd.svg" /></a>
-          <a href="#" id="statusInvisible">Invisible <img src="/webchat-imgs/status_offline.svg" /></a>
+          <div id="dropdown-content">
+            <a href="login.html">Account</a>
+            <a href="#" id="statusBtn">Status <img id="userstatus" /></a>
+            <a href="login.html">
+              <div id="signout">Sign Out</div>
+            </a>
+          </div>
+          <div id="statusChange">
+            <a href="#" id="customStatus">Set a custom status</a>
+            <a href="#" id="statusOnline"
+              >Online <img src="/webchat-imgs/status_online.svg"
+            /></a>
+            <a href="#" id="statusIdle"
+              >Idle <img src="/webchat-imgs/status_idle.svg"
+            /></a>
+            <a href="#" id="statusDnd"
+              >Do not disturb <img src="/webchat-imgs/status_dnd.svg"
+            /></a>
+            <a href="#" id="statusInvisible"
+              >Invisible <img src="/webchat-imgs/status_offline.svg"
+            /></a>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <style>
-    .pending {
-      color: gray;
-    }
+    <style>
+      .pending {
+        color: gray;
+      }
 
-    body {
-      font-family: "Poppins", sans-serif;
-      background-color: #2f3136;
-    }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #2f3136;
+      }
 
-    #pfp {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      /* border: 2px solid #000;*/
-    }
+      #pfp {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        /* border: 2px solid #000;*/
+      }
+      img {
+        /*no select*/
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
 
-    .changeonhover:hover {
-      background-color: #33363c;
-      cursor: pointer;
-    }
+      .changeonhover:hover {
+        background-color: #33363c;
+        cursor: pointer;
+      }
+      .changeonhover:hover .friend-status {
+        color: #d3cfcf;
+      }
+      .changeonhover:hover .friend-name {
+        color: #d3cfcf;
+      }
 
-    .customStatusInput {
-      background: #303339;
-      border: 1px solid #000;
-      border-radius: 5px;
-      color: #fff;
-      padding: 12px;
-      font-size: 16px;
-      width: 63%;
-    }
+      .customStatusInput {
+        background: #303339;
+        border: 1px solid #000;
+        border-radius: 5px;
+        color: #fff;
+        padding: 12px;
+        font-size: 16px;
+        width: 63%;
+      }
 
+      /* on .customStatusInput: focus remove the focus border */
+      .customStatusInput:focus {
+        /* on focus turn the border to a solid blue */
+        border: 1px solid #009ad7;
+        outline: none;
+        animation: border 0.5s forwards;
+      }
 
-    /* on .customStatusInput: focus remove the focus border */
-    .customStatusInput:focus {
-      /* on focus turn the border to a solid blue */
-      border: 1px solid #009AD7;
-      outline: none;
-      animation: border 0.5s forwards;
-    }
+      .customStatusSelect {
+        margin: inherit;
+        background: #303339;
+        border: 1px solid #000;
+        border-radius: 5px;
+        color: #fff;
+        padding: 12px;
+        font-size: 16px;
+        width: 69%;
+        margin-right: 0px;
+        margin-left: 0px;
+      }
 
-    .customStatusSelect {
-      margin: inherit;
-      background: #303339;
-      border: 1px solid #000;
-      border-radius: 5px;
-      color: #fff;
-      padding: 12px;
-      font-size: 16px;
-      width: 69%;
-      margin-right: 0px;
-      margin-left: 0px;
-    }
+      /* .customStatusSelect when we hover over the values in the dropdown */
 
-
-    /* .customStatusSelect when we hover over the values in the dropdown */
-
-
-    .animated-gradient {
-      animation: animateBg 14s linear infinite;
-      background-image: linear-gradient(0deg,
+      .animated-gradient {
+        animation: animateBg 14s linear infinite;
+        background-image: linear-gradient(
+          0deg,
           #110149,
           #000080,
           #1b7c46,
           #110149,
-          #000080);
-      background-size: 100% 400%;
-    }
-
-    @keyframes animateBg {
-      0% {
-        background-position: 0% 0%;
+          #000080
+        );
+        background-size: 100% 400%;
       }
 
-      100% {
-        background-position: 0% 100%;
+      @keyframes animateBg {
+        0% {
+          background-position: 0% 0%;
+        }
+
+        100% {
+          background-position: 0% 100%;
+        }
       }
-    }
 
-    .selected {
-      background-color: #383c41;
-      color: white;
-    }
-
-    .whiteTextTitle {
-      color: #cccccc;
-    }
-
-    .grayTextTitle {
-      color: gray;
-    }
-
-    #pfp:hover {
-      cursor: pointer;
-      filter: brightness(0.8);
-    }
-
-    ::placeholder {
-      /* Chrome, Firefox, Opera, Safari 10.1+ */
-      color: #5e646e;
-      opacity: 1;
-      /* Firefox */
-    }
-
-    :-ms-input-placeholder {
-      /* Internet Explorer 10-11 */
-      color: #5e646e;
-    }
-
-    ::-ms-input-placeholder {
-      /* Microsoft Edge */
-      color: #5e646e;
-    }
-
-    #username {
-      color: #dddddd;
-      left: 60px;
-      position: fixed;
-      margin-top: 10px;
-      font-size: 15px;
-    }
-
-    #dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: #1a202c;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-      z-index: 1;
-      border-radius: 5px;
-      border-top-width: 10px;
-      bottom: 60px;
-      left: 10px;
-    }
-
-    #dropdown-content a {
-      color: #fff;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-      border-radius: 5px;
-    }
-
-    #dropdown-content a:hover {
-      background-color: #12161f;
-    }
-
-    #friend-list {
-      position: fixed;
-      background-color: #292b30;
-      top: 65px;
-      left: 0;
-      width: 302px;
-      height: 825px;
-      overflow-y: scroll;
-      overflow-x: hidden;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    #friend-list::-webkit-scrollbar {
-      display: none;
-    }
-
-    .user {
-      background-color: #292b30;
-      width: 301px;
-      height: 50px;
-      margin-bottom: 5px;
-      align-content: center;
-      align-items: center;
-      display: flex;
-      padding-left: 10px;
-      /* position: absolute; */
-    }
-
-    .friend-pfp {
-      border-radius: 10vh;
-      height: 40px;
-      width: 40px;
-      position: relative;
-    }
-
-    .friend-name {
-      /* top: -9px;
-        left: 60px; */
-      position: absolute;
-      font-weight: initial;
-      color: #999999;
-    }
-
-    .friend-status {
-      position: absolute;
-      /* top: 13px;
-        left: 60px; */
-      font-size: 12px;
-      font-weight: initial;
-      color: gray;
-    }
-
-    #serverline {
-      position: fixed;
-      top: 62px;
-      width: 300px;
-      height: 1px;
-      background-color: #28292c;
-    }
-
-    #userstatuspfp {
-      bottom: 10px;
-      position: fixed;
-      left: 30px;
-      z-index: 2;
-    }
-
-    #transparentOutline {
-      display: none;
-      background-color: #292b2f;
-      width: 12px;
-      height: 12px;
-      position: fixed;
-      bottom: 10px;
-      left: 36px;
-      z-index: 1;
-      border-radius: 10vh;
-    }
-
-    .transparentOutline {
-      background-color: #292b2f;
-      width: 12px;
-      height: 12px;
-      position: fixed;
-      z-index: 1;
-      border-radius: 10vh;
-    }
-
-    .status-pfp {
-      z-index: 2;
-    }
-
-    .pfp-pic {
-      border-radius: 10vh;
-      height: 40px;
-      width: 40px;
-    }
-
-    .css-input {
-      padding: 6px;
-      font-size: 17px;
-      border-width: 0px;
-      border-color: #292b2f;
-      background-color: #40444b;
-      color: #d9d9d9;
-      border-style: solid;
-      border-radius: 11px;
-      box-shadow: 0px 0px 0px rgba(66, 66, 66, 0.75);
-      text-shadow: 0px 0px 5px rgba(66, 66, 66, 0.75);
-    }
-
-    .css-input:focus {
-      outline: none;
-    }
-
-    #statusChange {
-      display: none;
-      position: absolute;
-      background-color: #1a202c;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-      z-index: 1;
-      border-radius: 5px;
-      border-top-width: 10px;
-      bottom: 60px;
-      left: 10px;
-    }
-
-    #statusChange a {
-      color: #fff;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-      border-radius: 5px;
-    }
-
-    #statusChange a:hover {
-      background-color: #12161f;
-    }
-
-    #chat {
-      /*middle responsive*/
-      position: fixed;
-      bottom: 0;
-      left: 18.9rem;
-      right: 0;
-      height: 100%;
-      background-color: #36393f;
-    }
-
-    #chat input {
-      text-indent: 10px;
-      /*middle center responsive*/
-      position: absolute;
-      width: 90%;
-      bottom: 0;
-      /* left: 0; */
-      left: 50%;
-      right: 25%;
-      margin-left: -45%;
-      margin-bottom: 10px;
-      height: 30px;
-    }
-
-    #messages {
-      position: fixed;
-
-      top: 0;
-      width: 100%;
-      left: 18.9rem;
-
-      height: calc(100% - 52px);
-    }
-
-    #messageList {
-      overflow-x: auto;
-      white-space: nowrap;
-      color: white;
-      position: fixed;
-      margin-top: 70px;
-      height: calc(100% - 113px);
-      width: 100%;
-    }
-
-    #messageList li {
-      display: inline;
-    }
-
-    #channelHeader {
-      position: fixed;
-      display: flex;
-      top: 0;
-      width: 100%;
-      left: 18.9rem;
-      height: 52px;
-      background-color: #36393f;
-      color: white;
-      font-size: 1.2rem;
-      font-weight: bold;
-      padding-left: 10px;
-      padding-top: 10px;
-      border-bottom: 1px solid #28292c;
-    }
-
-    #profileSection {
-      background-color: #292b2f;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 301px;
-      height: 60px;
-    }
-
-    @media screen and (max-width: 768px) {
-      #channelHeader {
-        position: fixed;
-        display: flex;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: 52px;
-        background-color: #36393f;
+      .selected {
+        background-color: #383c41;
         color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
-        padding-left: 10px;
-        padding-top: 10px;
-        border-bottom: 1px solid #28292c;
       }
 
-      #messageList {
-        overflow-x: auto;
-        white-space: nowrap;
-        color: white;
+      .whiteTextTitle {
+        color: #cccccc;
+      }
+
+      .grayTextTitle {
+        color: gray;
+      }
+
+      #pfp:hover {
+        cursor: pointer;
+        filter: brightness(0.8);
+      }
+
+      ::placeholder {
+        /* Chrome, Firefox, Opera, Safari 10.1+ */
+        color: #5e646e;
+        opacity: 1;
+        /* Firefox */
+      }
+
+      :-ms-input-placeholder {
+        /* Internet Explorer 10-11 */
+        color: #5e646e;
+      }
+
+      ::-ms-input-placeholder {
+        /* Microsoft Edge */
+        color: #5e646e;
+      }
+
+      #username {
+        color: #dddddd;
+        left: 60px;
         position: fixed;
-        margin-top: 70px;
-        height: calc(100% - 201px);
-        width: 100%;
-        padding-left: 10px;
+        margin-top: 10px;
+        font-size: 15px;
       }
 
-      #messages {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: calc(100% - 52px);
-      }
-
-      #chat {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 100%;
-        height: 100%;
-        background-color: #36393f;
-      }
-
-      #chat input {
-        text-indent: 10px;
+      #dropdown-content {
+        display: none;
         position: absolute;
-        /* width: 90%; */
-        left: 61px;
-        bottom: 73px;
-        width: 242px;
-        margin-left: -45%;
-        margin-bottom: 10px;
-        height: 30px;
+        background-color: #1a202c;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        border-radius: 5px;
+        border-top-width: 10px;
+        bottom: 60px;
+        left: 10px;
       }
 
-      #profileSection {
-        background-color: #292b2f;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-      }
-    }
-
-    @media screen and (max-width: 576px) {
-      #channelHeader {
-        position: fixed;
-        display: flex;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: 52px;
-        background-color: #36393f;
-        color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
-        padding-left: 10px;
-        padding-top: 10px;
-        border-bottom: 1px solid #28292c;
+      #dropdown-content a {
+        color: #fff;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        border-radius: 5px;
       }
 
-      #messageList {
-        overflow-x: auto;
-        white-space: nowrap;
-        color: white;
-        position: fixed;
-        margin-top: 70px;
-        height: calc(100% - 201px);
-        width: 100%;
-        padding-left: 10px;
-      }
-
-      #messages {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: calc(100% - 52px);
+      #dropdown-content a:hover {
+        background-color: #12161f;
       }
 
       #friend-list {
+        position: fixed;
+        background-color: #292b30;
+        top: 65px;
+        left: 0;
+        width: 302px;
+        height: 825px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      #friend-list::-webkit-scrollbar {
         display: none;
       }
 
+      .user {
+        background-color: #292b30;
+        width: 301px;
+        height: 50px;
+        margin-bottom: 5px;
+        align-content: center;
+        align-items: center;
+        display: flex;
+        padding-left: 10px;
+        /* position: absolute; */
+      }
+
+      .friend-pfp {
+        border-radius: 10vh;
+        height: 40px;
+        width: 40px;
+        position: relative;
+      }
+
+      .friend-name {
+        /* top: -9px;
+        left: 60px; */
+        position: absolute;
+        font-weight: initial;
+        color: #999999;
+      }
+
+      .friend-status {
+        position: absolute;
+        /* top: 13px;
+        left: 60px; */
+        font-size: 12px;
+        font-weight: initial;
+        color: gray;
+        white-space: nowrap;
+      }
+      .user-status {
+        position: absolute;
+        font-size: 12px;
+        font-weight: initial;
+        color: gray;
+        white-space: nowrap;
+      }
+
+      #serverline {
+        position: fixed;
+        top: 62px;
+        width: 300px;
+        height: 1px;
+        background-color: #28292c;
+      }
+
+      #userstatuspfp {
+        bottom: 10px;
+        position: fixed;
+        left: 30px;
+        z-index: 2;
+      }
+
+      #transparentOutline {
+        display: none;
+        background-color: #292b2f;
+        width: 12px;
+        height: 12px;
+        position: fixed;
+        bottom: 10px;
+        left: 36px;
+        z-index: 1;
+        border-radius: 10vh;
+      }
+
+      .transparentOutline {
+        background-color: #292b2f;
+        width: 12px;
+        height: 12px;
+        position: fixed;
+        z-index: 1;
+        border-radius: 10vh;
+      }
+
+      .status-pfp {
+        z-index: 2;
+      }
+
+      .pfp-pic {
+        border-radius: 10vh;
+        height: 40px;
+        width: 40px;
+      }
+
+      .css-input {
+        padding: 6px;
+        font-size: 17px;
+        border-width: 0px;
+        border-color: #292b2f;
+        background-color: #40444b;
+        color: #d9d9d9;
+        border-style: solid;
+        border-radius: 11px;
+        box-shadow: 0px 0px 0px rgba(66, 66, 66, 0.75);
+        text-shadow: 0px 0px 5px rgba(66, 66, 66, 0.75);
+      }
+
+      .css-input:focus {
+        outline: none;
+      }
+
+      #statusChange {
+        display: none;
+        position: absolute;
+        background-color: #1a202c;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        border-radius: 5px;
+        border-top-width: 10px;
+        bottom: 60px;
+        left: 10px;
+      }
+
+      #statusChange a {
+        color: #fff;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        border-radius: 5px;
+      }
+
+      #statusChange a:hover {
+        background-color: #12161f;
+      }
+
       #chat {
+        /*middle responsive*/
         position: fixed;
         bottom: 0;
-        left: 0;
-        right: 100%;
+        left: 18.9rem;
+        right: 0;
         height: 100%;
         background-color: #36393f;
       }
 
       #chat input {
         text-indent: 10px;
+        /*middle center responsive*/
         position: absolute;
-        /* width: 90%; */
-        left: 61px;
-        bottom: 73px;
-        width: 242px;
+        width: 90%;
+        bottom: 0;
+        /* left: 0; */
+        left: 50%;
+        right: 25%;
         margin-left: -45%;
         margin-bottom: 10px;
         height: 30px;
       }
 
-      #profileSection {
-        background-color: #292b2f;
+      #messages {
         position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-      }
-    }
 
-    @media screen and (max-width: 425px) {
-      #channelHeader {
-        position: fixed;
-        display: flex;
         top: 0;
         width: 100%;
-        left: 0;
-        height: 52px;
-        background-color: #36393f;
-        color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
-        padding-left: 10px;
-        padding-top: 10px;
-        border-bottom: 1px solid #28292c;
+        left: 18.9rem;
+
+        height: calc(100% - 52px);
       }
 
       #messageList {
-        overflow-wrap: break-word;
+        overflow-x: hidden;
+        white-space: nowrap;
+        color: white;
+        position: fixed;
+        margin-top: 70px;
+        margin-right: 30px;
+        height: calc(100% - 135px);
+        width: 100%;
+      }
+
+      #messageList li {
+        display: inline;
+        white-space: normal;
+        float: left;
+        width: 100%;
+        height: auto;
         word-wrap: break-word;
-        overflow-x: auto;
-        white-space: nowrap;
-        color: white;
-        position: fixed;
-        margin-top: 70px;
-        height: calc(100% - 201px);
-        width: 100%;
-        padding-left: 10px;
       }
 
-      #messages {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: calc(100% - 52px);
-      }
-
-      #chat {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 100%;
-        height: 100%;
-        background-color: #36393f;
-      }
-
-      #chat input {
-        text-indent: 10px;
-        position: absolute;
-        /* width: 90%; */
-        left: 61px;
-        bottom: 73px;
-        width: 242px;
-        margin-left: -45%;
-        margin-bottom: 10px;
-        height: 30px;
-      }
-
-      #profileSection {
-        background-color: #292b2f;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-      }
-    }
-
-    @media screen and (max-width: 576px) {
       #channelHeader {
         position: fixed;
         display: flex;
         top: 0;
         width: 100%;
-        left: 0;
+        left: 18.9rem;
         height: 52px;
         background-color: #36393f;
         color: white;
@@ -1169,125 +1402,357 @@
         border-bottom: 1px solid #28292c;
       }
 
-      #messageList {
-        overflow-x: auto;
-        white-space: nowrap;
-        color: white;
-        position: fixed;
-        margin-top: 70px;
-        height: calc(100% - 201px);
-        width: 100%;
-        padding-left: 10px;
-      }
-
-      #messages {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: calc(100% - 52px);
-      }
-
-      #chat {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 100%;
-        height: 100%;
-        background-color: #36393f;
-      }
-
-      #chat input {
-        text-indent: 10px;
-        position: absolute;
-        /* width: 90%; */
-        left: 61px;
-        bottom: 73px;
-        width: 242px;
-        margin-left: -45%;
-        margin-bottom: 10px;
-        height: 30px;
-      }
-
       #profileSection {
         background-color: #292b2f;
         position: fixed;
         bottom: 0;
         left: 0;
-        width: 100%;
+        width: 301px;
         height: 60px;
       }
-    }
 
-    @media screen and (max-width: 425px) {
-      #channelHeader {
-        position: fixed;
-        display: flex;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: 52px;
-        background-color: #36393f;
-        color: white;
-        font-size: 1.2rem;
-        font-weight: bold;
-        padding-left: 10px;
-        padding-top: 10px;
-        border-bottom: 1px solid #28292c;
+      @media screen and (max-width: 768px) {
+        #channelHeader {
+          position: fixed;
+          display: flex;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: 52px;
+          background-color: #36393f;
+          color: white;
+          font-size: 1.2rem;
+          font-weight: bold;
+          padding-left: 10px;
+          padding-top: 10px;
+          border-bottom: 1px solid #28292c;
+        }
+
+        #messageList {
+          overflow-x: auto;
+          white-space: nowrap;
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 100%;
+          padding-left: 10px;
+        }
+
+        #messages {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: calc(100% - 52px);
+        }
+
+        #chat {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 100%;
+          height: 100%;
+          background-color: #36393f;
+        }
+
+        #chat input {
+          text-indent: 10px;
+          position: absolute;
+          /* width: 90%; */
+          left: 61px;
+          bottom: 73px;
+          width: 242px;
+          margin-left: -45%;
+          margin-bottom: 10px;
+          height: 30px;
+        }
+
+        #profileSection {
+          background-color: #292b2f;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 60px;
+        }
       }
 
-      #messageList {
-        overflow-wrap: break-word;
-        word-wrap: break-word;
-        overflow-x: auto;
-        white-space: nowrap;
-        color: white;
-        position: fixed;
-        margin-top: 70px;
-        height: calc(100% - 201px);
-        width: 100%;
-        padding-left: 10px;
+      @media screen and (max-width: 576px) {
+        #channelHeader {
+          position: fixed;
+          display: flex;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: 52px;
+          background-color: #36393f;
+          color: white;
+          font-size: 1.2rem;
+          font-weight: bold;
+          padding-left: 10px;
+          padding-top: 10px;
+          border-bottom: 1px solid #28292c;
+        }
+
+        #messageList {
+          overflow-x: auto;
+          white-space: nowrap;
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 100%;
+          padding-left: 10px;
+        }
+
+        #messages {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: calc(100% - 52px);
+        }
+
+        #friend-list {
+          display: none;
+        }
+
+        #chat {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 100%;
+          height: 100%;
+          background-color: #36393f;
+        }
+
+        #chat input {
+          text-indent: 10px;
+          position: absolute;
+          /* width: 90%; */
+          left: 61px;
+          bottom: 73px;
+          width: 242px;
+          margin-left: -45%;
+          margin-bottom: 10px;
+          height: 30px;
+        }
+
+        #profileSection {
+          background-color: #292b2f;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 60px;
+        }
       }
 
-      #messages {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        left: 0;
-        height: calc(100% - 52px);
+      @media screen and (max-width: 425px) {
+        #channelHeader {
+          position: fixed;
+          display: flex;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: 52px;
+          background-color: #36393f;
+          color: white;
+          font-size: 1.2rem;
+          font-weight: bold;
+          padding-left: 10px;
+          padding-top: 10px;
+          border-bottom: 1px solid #28292c;
+        }
+
+        #messageList {
+          overflow-wrap: break-word;
+          word-wrap: break-word;
+          overflow-x: auto;
+          white-space: nowrap;
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 100%;
+          padding-left: 10px;
+        }
+
+        #messages {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: calc(100% - 52px);
+        }
+
+        #chat {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 100%;
+          height: 100%;
+          background-color: #36393f;
+        }
+
+        #chat input {
+          text-indent: 10px;
+          position: absolute;
+          /* width: 90%; */
+          left: 61px;
+          bottom: 73px;
+          width: 242px;
+          margin-left: -45%;
+          margin-bottom: 10px;
+          height: 30px;
+        }
+
+        #profileSection {
+          background-color: #292b2f;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 60px;
+        }
       }
 
-      #chat {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 100%;
-        height: 100%;
-        background-color: #36393f;
+      @media screen and (max-width: 576px) {
+        #channelHeader {
+          position: fixed;
+          display: flex;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: 52px;
+          background-color: #36393f;
+          color: white;
+          font-size: 1.2rem;
+          font-weight: bold;
+          padding-left: 10px;
+          padding-top: 10px;
+          border-bottom: 1px solid #28292c;
+        }
+
+        #messageList {
+          overflow-x: auto;
+          white-space: nowrap;
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 100%;
+          padding-left: 10px;
+        }
+
+        #messages {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: calc(100% - 52px);
+        }
+
+        #chat {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 100%;
+          height: 100%;
+          background-color: #36393f;
+        }
+
+        #chat input {
+          text-indent: 10px;
+          position: absolute;
+          /* width: 90%; */
+          left: 61px;
+          bottom: 73px;
+          width: 242px;
+          margin-left: -45%;
+          margin-bottom: 10px;
+          height: 30px;
+        }
+
+        #profileSection {
+          background-color: #292b2f;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 60px;
+        }
       }
 
-      #chat input {
-        text-indent: 10px;
-        position: absolute;
-        /* width: 90%; */
-        left: 61px;
-        bottom: 73px;
-        width: 242px;
-        margin-left: -45%;
-        margin-bottom: 10px;
-        height: 30px;
-      }
+      @media screen and (max-width: 425px) {
+        #channelHeader {
+          position: fixed;
+          display: flex;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: 52px;
+          background-color: #36393f;
+          color: white;
+          font-size: 1.2rem;
+          font-weight: bold;
+          padding-left: 10px;
+          padding-top: 10px;
+          border-bottom: 1px solid #28292c;
+        }
 
-      #profileSection {
-        background-color: #292b2f;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-      }
-    }
-  </style>
-</body>
+        #messageList {
+          overflow-wrap: break-word;
+          word-wrap: break-word;
+          overflow-x: auto;
+          white-space: nowrap;
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 100%;
+          padding-left: 10px;
+        }
 
+        #messages {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          left: 0;
+          height: calc(100% - 52px);
+        }
+
+        #chat {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 100%;
+          height: 100%;
+          background-color: #36393f;
+        }
+
+        #chat input {
+          text-indent: 10px;
+          position: absolute;
+          /* width: 90%; */
+          left: 61px;
+          bottom: 73px;
+          width: 242px;
+          margin-left: -45%;
+          margin-bottom: 10px;
+          height: 30px;
+        }
+
+        #profileSection {
+          background-color: #292b2f;
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 60px;
+        }
+      }
+    </style>
+  </body>
 </html>

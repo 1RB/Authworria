@@ -73,3 +73,6 @@ node_modules/
 
 # app file for server
 **/app.js
+
+# history folder
+.history/**
