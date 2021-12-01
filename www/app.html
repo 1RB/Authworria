@@ -349,18 +349,23 @@
                   img_grayscale: "/img/CAD_bw.png",
                 },
                 AS: {
-                    name: "Authworria Staff",
-                    short: "AS",
-                    img_colored: "/img/AS.png", 
-                    img_grayscale: "/img/AS_bw.png",
-                }
+                  name: "Authworria Staff",
+                  short: "AS",
+                  img_colored: "/img/AS.png",
+                  img_grayscale: "/img/AS_bw.png",
+                },
               };
               if (data.err) return;
               if (data.user.badges.length > 0) {
                 console.log("Parsing badges....");
                 for (let i of data.user.badges) {
-                    let badge = badgeResolver[i];
-                    console.log("Badge detected: " + badge.short + ". Long name: " + badge.name);
+                  let badge = badgeResolver[i];
+                  console.log(
+                    "Badge detected: " +
+                      badge.short +
+                      ". Long name: " +
+                      badge.name
+                  );
                 }
               }
             });
@@ -553,17 +558,7 @@
             socket.on("sendMessageRes", function (data) {
               // Executes when the server responds to a client request to send a message
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, message: <message>, sender: <sender>, senderUID: <senders UID>, senderImg: <senders pfp>, time: <time>}
-              if (data.err) {
-                if (data.err == "over 2000 characters") {
-                  document
-                    .getElementById("temp-msg-" + data.messageId)
-                    .classList.remove("pending");
-                  document.getElementById(
-                    "temp-msg-" + data.messageId
-                  ).style.color = "#ff0000";
-                  return;
-                }
-              }
+              if (data.err) return console.log(data.err);
               document
                 .getElementById("temp-msg-" + data.messageId)
                 .classList.remove("pending");
@@ -571,22 +566,41 @@
                 .getElementById("temp-msg-" + data.messageId)
                 .removeAttribute("class");
               document.getElementById("temp-msg-" + data.messageId).innerHTML =
-                data.sender + ": " + data.message;
+                "<img id='sender-pfp-" +
+                data.messageId +
+                "'>" +
+                "<p id='usrname'><u><b>" +
+                data.sender +
+                "</b></u>" +
+                "<br> " +
+                data.message +
+                "</p>";
+              document.getElementById("sender-pfp-" + data.messageId).src =
+                data.senderImg;
+              console.log(data.senderImg);
               document.getElementById("temp-msg-" + data.messageId).id =
                 "message-" + data.messageId;
             });
             socket.on("receiveMessage", function (data) {
               // Executes when the client receives a message
               // Returns: {message: <message>, sender: <sender>, senderUID: <senders UID> senderImg: <senders pfp>, time: <time>}
-
               document.getElementById("messageList").innerHTML +=
                 "<li id='message-" +
                 data.messageId +
                 "'>" +
+                "<img id='sender-pfp-" +
+                data.messageId +
+                "'>" +
+                "<p id='usrname'><u><b>" +
                 escapeString(data.sender) +
-                ": " +
+                "</b></u>" +
+                "<br> " +
                 data.message +
+                "</p>" +
                 "</li>";
+              document.getElementById("sender-pfp-" + data.messageId).src =
+                data.senderImg;
+
               document.getElementById("messageList").innerHTML += "<br> ";
               //scroll
               document.getElementById("messageList").scrollTop =
@@ -749,8 +763,7 @@
               return result;
             }
             function sendMessage() {
-              var message = document.getElementById("messageBox").value; //.trimStart().trimEnd();//.trim();
-
+              var message = document.getElementById("messageBox").value;
               if (message != "") {
                 let randomId = makeID(16);
                 socket.emit("sendMessage", {
@@ -764,14 +777,22 @@
                   "<li id='temp-msg-" +
                   randomId +
                   "' class='pending'>" +
+                  "<img id='sender-pfp-" +
+                  randomId +
+                  "'>" +
+                  "<p id='usrname'><u><b>" +
+                  firebase.auth().currentUser.displayName +
+                  "</b></u>" +
+                  "<br> " +
                   escapeString(message) +
+                  "</p>" +
                   "</li>";
                 document.getElementById("messageList").innerHTML += "<br> ";
                 //scroll
                 document.getElementById("messageList").scrollTop =
                   document.getElementById("messageList").scrollHeight;
+                document.getElementById("messageBox").value = "";
               }
-              document.getElementById("messageBox").value = "";
             }
             document
               .getElementById("signout")
@@ -1027,6 +1048,9 @@
       body {
         font-family: "Poppins", sans-serif;
         background-color: #2f3136;
+      }
+      body::-webkit-scrollbar {
+        display: none;
       }
 
       #pfp {
@@ -1367,24 +1391,44 @@
       }
 
       #messageList {
-        overflow-x: hidden;
-        white-space: nowrap;
-        color: white;
-        position: fixed;
-        margin-top: 70px;
-        margin-right: 30px;
-        height: calc(100% - 135px);
-        width: 100%;
-      }
+    overflow-x: hidden;
+    white-space: normal;
+    color: white;
+    position: fixed;
+    margin-top: 70px;
+    height: calc(100% - 129px);
+    width: 81.9%;
+    overflow-wrap: anywhere;
+  }
 
-      #messageList li {
-        display: inline;
-        white-space: normal;
-        float: left;
-        width: 100%;
-        height: auto;
-        word-wrap: break-word;
-      }
+  #messageList li {
+    display: flex;
+    flex-direction: row;
+  }
+
+  #messageList li img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    margin-top: 5px;
+  }
+
+  #messageList li #usrname {
+    top: 0;
+    left: 0;
+    margin: 0px;
+    height: 25px;
+    display: inline-table;
+  }
+
+  #messageList li #text {
+    margin-top: 21px;
+    margin-bottom: 0px;
+    margin-right: 0px;
+    position: relative;
+    left: -60px;
+  }
 
       #channelHeader {
         position: fixed;
@@ -1429,15 +1473,49 @@
         }
 
         #messageList {
-          overflow-x: auto;
-          white-space: nowrap;
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 100%;
-          padding-left: 10px;
-        }
+      color: white;
+      position: fixed;
+      margin-top: 70px;
+      height: calc(100% - 201px);
+      width: 95%;
+      padding-left: 10px;
+    }
+
+    #messageList li {
+      display: flex;
+      flex-direction: row;
+      overflow-x: hidden;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      height: auto;
+    }
+
+    #messageList li #usrname {
+      display: inline-table;
+    }
+
+    #messageList li img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      margin-top: 5px;
+    }
+
+    #messageList li #usrname {
+      top: 0;
+      left: 0;
+      margin: 0px;
+      height: 25px;
+    }
+
+    #messageList li #text {
+      margin-top: 21px;
+      margin-bottom: 0px;
+      margin-right: 0px;
+      position: relative;
+      left: -60px;
+    }
 
         #messages {
           position: fixed;
@@ -1496,15 +1574,49 @@
         }
 
         #messageList {
-          overflow-x: auto;
-          white-space: nowrap;
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 100%;
-          padding-left: 10px;
-        }
+      color: white;
+      position: fixed;
+      margin-top: 70px;
+      height: calc(100% - 201px);
+      width: 95%;
+      padding-left: 10px;
+    }
+
+    #messageList li {
+      display: flex;
+      flex-direction: row;
+      overflow-x: hidden;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      height: auto;
+    }
+
+    #messageList li #usrname {
+      display: inline-table;
+    }
+
+    #messageList li img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      margin-top: 5px;
+    }
+
+    #messageList li #usrname {
+      top: 0;
+      left: 0;
+      margin: 0px;
+      height: 25px;
+    }
+
+    #messageList li #text {
+      margin-top: 21px;
+      margin-bottom: 0px;
+      margin-right: 0px;
+      position: relative;
+      left: -60px;
+    }
 
         #messages {
           position: fixed;
@@ -1567,17 +1679,49 @@
         }
 
         #messageList {
-          overflow-wrap: break-word;
-          word-wrap: break-word;
-          overflow-x: auto;
-          white-space: nowrap;
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 100%;
-          padding-left: 10px;
-        }
+      color: white;
+      position: fixed;
+      margin-top: 70px;
+      height: calc(100% - 201px);
+      width: 95%;
+      padding-left: 10px;
+    }
+
+    #messageList li {
+      display: flex;
+      flex-direction: row;
+      overflow-x: hidden;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      height: auto;
+    }
+
+    #messageList li #usrname {
+      display: inline-table;
+    }
+
+    #messageList li img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      margin-top: 5px;
+    }
+
+    #messageList li #usrname {
+      top: 0;
+      left: 0;
+      margin: 0px;
+      height: 25px;
+    }
+
+    #messageList li #text {
+      margin-top: 21px;
+      margin-bottom: 0px;
+      margin-right: 0px;
+      position: relative;
+      left: -60px;
+    }
 
         #messages {
           position: fixed;
