@@ -228,9 +228,9 @@
               .getElementById("temp-msg-" + data.messageId)
               .removeAttribute("class");
             document.getElementById("temp-msg-" + data.messageId).innerHTML =
-            "<img id='sender-pfp-" + data.messageId + "'>" + "<p id='usrname'><u><b>" + data.sender + "</b></u>" + "<br> " + data.message + "</p>";
+              "<img id='sender-pfp-" + data.messageId + "'>" + "<p id='usrname'><u><b>" + data.sender + "</b></u>" + "<br> " + data.message + "</p>";
             document.getElementById("sender-pfp-" + data.messageId).src = data.senderImg;
-            console.log(data.senderImg);  
+            console.log(data.senderImg);
             document.getElementById("temp-msg-" + data.messageId).id =
               "message-" + data.messageId;
           });
@@ -395,11 +395,11 @@
               document.getElementById("messageList").innerHTML +=
                 "<li id='temp-msg-" +
                 randomId +
-                "' class='pending'>" +
-                escapeString(message) +
+                "' class='pending'>" + "<img id='sender-pfp-" + randomId + "'>" + "<p id='usrname'><u><b>" + firebase.auth().currentUser.displayName + "</b></u>" + "<br> " +
+                escapeString(message) + "</p>" +
                 "</li>";
               document.getElementById("messageList").innerHTML += "<br> ";
-              //scroll
+              document.getElementById("sender-pfp-" + randomId).src = firebase.auth().currentUser.photoURL;
               document.getElementById("messageList").scrollTop =
                 document.getElementById("messageList").scrollHeight;
               document.getElementById("messageBox").value = "";
@@ -1287,207 +1287,6 @@
     }
   }
 
-  @media screen and (max-width: 576px) {
-    #channelHeader {
-      position: fixed;
-      display: flex;
-      top: 0;
-      width: 100%;
-      left: 0;
-      height: 52px;
-      background-color: #36393f;
-      color: white;
-      font-size: 1.2rem;
-      font-weight: bold;
-      padding-left: 10px;
-      padding-top: 10px;
-      border-bottom: 1px solid #28292c;
-    }
-
-    #messageList {
-      color: white;
-      position: fixed;
-      margin-top: 70px;
-      height: calc(100% - 201px);
-      width: 95%;
-      padding-left: 10px;
-    }
-
-    #messageList li {
-      display: flex;
-      flex-direction: row;
-      overflow-x: hidden;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      height: auto;
-    }
-
-    #messageList li #usrname {
-      display: inline-table;
-    }
-
-    #messageList li img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-      margin-top: 5px;
-    }
-
-    #messageList li #usrname {
-      top: 0;
-      left: 0;
-      margin: 0px;
-      height: 25px;
-    }
-
-    #messageList li #text {
-      margin-top: 21px;
-      margin-bottom: 0px;
-      margin-right: 0px;
-      position: relative;
-      left: -60px;
-    }
-
-    #messages {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      left: 0;
-      height: calc(100% - 52px);
-    }
-
-    #chat {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 100%;
-      height: 100%;
-      background-color: #36393f;
-    }
-
-    #chat input {
-      text-indent: 10px;
-      position: absolute;
-      /* width: 90%; */
-      left: 61px;
-      bottom: 73px;
-      width: 242px;
-      margin-left: -45%;
-      margin-bottom: 10px;
-      height: 30px;
-    }
-
-    #profileSection {
-      background-color: #292b2f;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-    }
-  }
-
-  @media screen and (max-width: 425px) {
-    #channelHeader {
-      position: fixed;
-      display: flex;
-      top: 0;
-      width: 100%;
-      left: 0;
-      height: 52px;
-      background-color: #36393f;
-      color: white;
-      font-size: 1.2rem;
-      font-weight: bold;
-      padding-left: 10px;
-      padding-top: 10px;
-      border-bottom: 1px solid #28292c;
-    }
-
-    #messageList {
-      color: white;
-      position: fixed;
-      margin-top: 70px;
-      height: calc(100% - 201px);
-      width: 95%;
-      padding-left: 10px;
-    }
-
-    #messageList li {
-      display: flex;
-      flex-direction: row;
-      overflow-x: hidden;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      height: auto;
-    }
-
-    #messageList li #usrname {
-      display: inline-table;
-    }
-
-    #messageList li img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-      margin-top: 5px;
-    }
-
-    #messageList li #usrname {
-      top: 0;
-      left: 0;
-      margin: 0px;
-      height: 25px;
-    }
-
-    #messageList li #text {
-      margin-top: 21px;
-      margin-bottom: 0px;
-      margin-right: 0px;
-      position: relative;
-      left: -60px;
-    }
-
-    #messages {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      left: 0;
-      height: calc(100% - 52px);
-    }
-
-    #chat {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 100%;
-      height: 100%;
-      background-color: #36393f;
-    }
-
-    #chat input {
-      text-indent: 10px;
-      position: absolute;
-      /* width: 90%; */
-      left: 61px;
-      bottom: 73px;
-      width: 242px;
-      margin-left: -45%;
-      margin-bottom: 10px;
-      height: 30px;
-    }
-
-    #profileSection {
-      background-color: #292b2f;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-    }
-  }
 </style>
 </body>
 
