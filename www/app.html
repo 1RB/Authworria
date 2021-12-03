@@ -24,10 +24,26 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./css/app.css" />
-    <title>app</title>
+    <title>authchat</title>
   </head>
 
   <body>
+    <div
+      id="coverbg"
+      style="
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        z-index: 99999;
+        overflow: hidden;
+        background-color: rgba(0, 0, 0, 0.7);
+        transition: visibility 0s ease 0s, opacity 0.125s linear 0s;
+        visibility: hidden;
+        opacity: 0;
+      "
+    ></div>
     <script
       src="https://cdn.socket.io/4.4.0/socket.io.min.js"
       integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
@@ -40,16 +56,6 @@
       let resetUponUpdate = false;
       let pendingMessages = [];
       async function generateUserMenu(menudiv, data) {
-        /*
-          convert the below html code (remove friend) to javascript using document.createElement()
-          <div id="rem-friend" style="
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 40px;
-            background-color: red;
-            margin-bottom: 20px;"></div> 
-          */
         let remfriend = document.createElement("div");
         remfriend.id = "rem-friend";
         remfriend.style.position = "absolute";
@@ -86,6 +92,13 @@
           remfriend.style.backgroundColor = "";
           remfriendp.style.color = "red";
         };
+        //on click or tap, remove friend from the list
+        remfriend.onclick = function () {
+          socket.emit("removeKnown", {
+            knownUid: data.uid,
+            token: firebase?.auth()?.currentUser?.xa,
+          });
+        };
 
         //new div with id "view-profile" that has the same properties as remfriend except for the margin-bottom, border and background color
         let viewprofile = document.createElement("div");
@@ -103,7 +116,21 @@
         //border should be a seperator line
         viewprofile.style.border = "1px solid #000";
         viewprofile.dataset.uid = data.uid;
-
+        viewprofile.onmouseover = function () {
+          viewprofile.style.cursor = "pointer";
+        };
+        viewprofile.onmouseout = function () {
+          viewprofile.style.cursor = "";
+        };
+        viewprofile.onclick = function () {
+          document.getElementById("coverbg").style.visibility = "visible";
+          document.getElementById("coverbg").style.opacity = "1";
+          document.getElementById("profile-view").style.visibility = "visible";
+          document.getElementById("profile-view").style.opacity = "1";
+          for (let i of document.getElementsByName("user-menu")) {
+            i.remove();
+          }
+        };
         let viewprofilep = document.createElement("p");
         viewprofilep.style.textAlign = "center";
         viewprofilep.style.margin = "auto";
@@ -127,8 +154,50 @@
       //on window load
       window.onload = () => {
         (async () => {
-          /* prettier-ignore */
-          var setIdleTimer=function(){function a(){"online"==currentUser.status&&socket.emit("changeStatus",{status:"idle",token:firebase?.auth()?.currentUser?.xa})}function b(){c&&(socket.emit("changeStatus",{token:firebase?.auth()?.currentUser?.xa,status:c}),c=null),clearTimeout(d),d=setTimeout(a,3e5)}let c=null;var d;document.onload=b,document.onmousemove=b,document.onmousedown=b,document.ontouchstart=b,document.onclick=b,document.onkeydown=b,document.addEventListener("scroll",b,!0)};
+          let currentUser = {};
+
+          function setIdleTimer() {
+            let previousStatus = null;
+            var time;
+            document.onload = resetTimer;
+            document.onmousemove = resetTimer;
+            document.onmousedown = resetTimer; // touchscreen presses
+            document.ontouchstart = resetTimer;
+            document.onclick = resetTimer; // touchpad clicks
+            document.onkeydown = resetTimer; // onkeypress is deprectaed
+            document.addEventListener("scroll", resetTimer, true); // improved; see comments
+
+            function setIdle() {
+              if (currentUser.status == "online") {
+                console.log("User set to idle due to inactivity");
+                previousStatus = "online";
+                socket.emit("changeStatus", {
+                  status: "idle",
+                  token: firebase?.auth()?.currentUser?.xa,
+                  storeindb: false,
+                });
+                // currentUser.status = "idle";
+              }
+            }
+
+            function resetTimer() {
+              if (previousStatus) {
+                console.log(
+                  "User has returned from idle. Setting status to " +
+                    previousStatus.toUpperCase()
+                );
+                socket.emit("changeStatus", {
+                  token: firebase?.auth()?.currentUser?.xa,
+                  status: previousStatus,
+                });
+                // currentUser.status = previousStatus;
+                previousStatus = null;
+              }
+              clearTimeout(time);
+              time = setTimeout(setIdle, 300000);
+            }
+          }
+
           setIdleTimer();
           document.body.addEventListener("click", (e) => {
             if (document.getElementsByName("user-menu")) {
@@ -155,7 +224,6 @@
             measurementId: "G-P84R1SCWJB",
           };
           async function addUser(data) {
-            console.log(data);
             amountOfFriends++;
             let userdiv = document.createElement("div");
             userdiv.id = "user-" + data.uid;
@@ -238,18 +306,11 @@
             friendstatusp.classList.add("friend-status");
             friendstatusp.style.top = -42 + 55 * amountOfFriends + "px";
             friendstatusp.style.left = "60px";
-            console.log(
-              "Width in PX of UID: " +
-                data.uid +
-                "'s status is:" +
-                getTextWidth(data.status, getCanvasFontSize(friendstatusp)) +
-                "px"
-            );
+            // sus
             if (
               getTextWidth(data.status, getCanvasFontSize(friendstatusp)) >
               250 - 9
             ) {
-              console.log("Status too long, trimming...");
               // if the status is too long, shorten it until its less than 200 pixels minus the size of "..." (9 px) and add ...
               let status = data.status;
               while (
@@ -259,16 +320,6 @@
                 status = status.substring(0, status.length - 1);
               }
               friendstatusp.innerText = status + "...";
-              console.log(
-                "Status trimmed to: " +
-                  status +
-                  "... with a width of: " +
-                  getTextWidth(
-                    status + "...",
-                    getCanvasFontSize(friendstatusp)
-                  ) +
-                  "px"
-              );
             } else {
               friendstatusp.innerText = data.status;
             }
@@ -286,7 +337,6 @@
           } else {
             app = await firebase.initializeApp(firebaseConfig);
           }
-          let currentUser = {};
           let serverLastUpdate = null;
           let serverUpdateTimer = null;
           $(window).unload(function () {
@@ -302,6 +352,13 @@
                 token: firebase?.auth()?.currentUser?.xa,
               });
               //
+            });
+            socket.on("removeKnownRes", async function (data) {
+              // Remove the uid user from the friend list (element has id "user-<uid>")
+              document.getElementById("user-" + data.uid).remove();
+              amountOfFriends--;
+              // Update the friend list
+              await updateFriendList();
             });
             socket.on("userIdentRes", function (data) {
               // Executes when the server responds to the client indentification request
@@ -346,13 +403,13 @@
                   name: "Certified Authworria Developer",
                   short: "CAD",
                   img_colored: "/img/CAD.png",
-                  img_grayscale: "/img/CAD_bw.png",
+                  img_grayscale: "/img/CAD.svg",
                 },
                 AS: {
                   name: "Authworria Staff",
                   short: "AS",
                   img_colored: "/img/AS.png",
-                  img_grayscale: "/img/AS_bw.png",
+                  img_grayscale: "/img/AS.svg",
                 },
               };
               if (data.err) return;
@@ -525,7 +582,6 @@
               // if not, check if uid is in friend list, if so return
               if (document.getElementById("friend-pfp-" + data.uid)) return;
               // add user to friend list using addUser function with the data variable passed in
-              console.log(data);
               addUser(data);
               console.log("User added:", data.uid + " (" + data.name + ")");
             });
@@ -565,41 +621,97 @@
               document
                 .getElementById("temp-msg-" + data.messageId)
                 .removeAttribute("class");
-              document.getElementById("temp-msg-" + data.messageId).innerHTML =
-                "<img id='sender-pfp-" +
-                data.messageId +
-                "'>" +
-                "<p id='usrname'><u><b>" +
-                data.sender +
-                "</b></u>" +
-                "<br> " +
-                data.message +
-                "</p>";
-              document.getElementById("sender-pfp-" + data.messageId).src =
-                data.senderImg;
-              console.log(data.senderImg);
+              let lastMessage = document.getElementsByName("latest-msg")[0];
+              for (let i of document.getElementsByName("latest-msg")) {
+                i.removeAttribute("name");
+              }
+              document
+                .getElementById("temp-msg-" + data.messageId)
+                .setAttribute("name", "latest-msg");
+              if (
+                lastMessage &&
+                lastMessage?.dataset?.sender === data?.senderUID
+              ) {
+                // last message is from current user
+                document.getElementById(
+                  "temp-msg-" + data.messageId
+                ).innerHTML = "<p>sample text</p>";
+              } else {
+                // last message is from another user or no last message
+                document.getElementById(
+                  "temp-msg-" + data.messageId
+                ).innerHTML =
+                  "<img id='sender-pfp-" +
+                  data.messageId +
+                  "'>" +
+                  "<p id='usrname'><u><b>" +
+                  data.sender +
+                  "</b></u>" +
+                  "<br> " +
+                  data.message +
+                  "</p>";
+                document.getElementById("sender-pfp-" + data.messageId).src =
+                  data.senderImg;
+              }
+
+              document.getElementById(
+                "temp-msg-" + data.messageId
+              ).dataset.time = data.time;
+              document.getElementById(
+                "temp-msg-" + data.messageId
+              ).dataset.sender = data.senderUID;
               document.getElementById("temp-msg-" + data.messageId).id =
                 "message-" + data.messageId;
             });
             socket.on("receiveMessage", function (data) {
               // Executes when the client receives a message
               // Returns: {message: <message>, sender: <sender>, senderUID: <senders UID> senderImg: <senders pfp>, time: <time>}
-              document.getElementById("messageList").innerHTML +=
-                "<li id='message-" +
-                data.messageId +
-                "'>" +
-                "<img id='sender-pfp-" +
-                data.messageId +
-                "'>" +
-                "<p id='usrname'><u><b>" +
-                escapeString(data.sender) +
-                "</b></u>" +
-                "<br> " +
-                data.message +
-                "</p>" +
-                "</li>";
-              document.getElementById("sender-pfp-" + data.messageId).src =
-                data.senderImg;
+              let lastMessage = document.getElementsByName("latest-msg")[0];
+              console.log(lastMessage);
+              for (let i of document.getElementsByName("latest-msg")) {
+                i.removeAttribute("name");
+              }
+              if (
+                lastMessage &&
+                lastMessage?.dataset?.sender === data?.senderUID
+              ) {
+                // last message is from the same user
+                document.getElementById("messageList").innerHTML +=
+                  "<li id='message-" +
+                  data.messageId +
+                  "'>" +
+                  "<p id=usrname>" +
+                  data.message +
+                  "</p>" +
+                  "</li>";
+              } else {
+                // last message is from another user or no last message
+                document.getElementById("messageList").innerHTML +=
+                  "<li id='message-" +
+                  data.messageId +
+                  "'>" +
+                  "<img id='sender-pfp-" +
+                  data.messageId +
+                  "'>" +
+                  "<p id='usrname'><u><b>" +
+                  escapeString(data.sender) +
+                  "</b></u>" +
+                  "<br> " +
+                  data.message +
+                  "</p>" +
+                  "</li>";
+                document.getElementById("sender-pfp-" + data.messageId).src =
+                  data.senderImg;
+              }
+              document
+                .getElementById("message-" + data.messageId)
+                .setAttribute("name", "latest-msg");
+              document.getElementById(
+                "message-" + data.messageId
+              ).dataset.time = data.time;
+              document.getElementById(
+                "message-" + data.messageId
+              ).dataset.sender = data.senderUID;
 
               document.getElementById("messageList").innerHTML += "<br> ";
               //scroll
@@ -788,7 +900,8 @@
                   "</p>" +
                   "</li>";
                 document.getElementById("messageList").innerHTML += "<br> ";
-                document.getElementById("sender-pfp-" + randomId).src = firebase.auth().currentUser.photoURL;
+                document.getElementById("sender-pfp-" + randomId).src =
+                  firebase.auth().currentUser.photoURL;
                 document.getElementById("messageList").scrollTop =
                   document.getElementById("messageList").scrollHeight;
                 document.getElementById("messageBox").value = "";
@@ -835,7 +948,7 @@
             document
               .getElementById("statusOnline")
               .addEventListener("click", function () {
-                if (currentStatus !== "online") {
+                if (currentUser.status !== "online") {
                   document.getElementById("statusChange").style.display =
                     "none";
                   socket.emit("changeStatus", {
@@ -999,6 +1112,162 @@
         />
       </div>
       <div id="account">
+        <div
+          id="profile-view"
+          name="profile-view"
+          style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 500px;
+            background-color: #292b30;
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 100000;
+            height: auto;
+            transition: visibility 0s, opacity 0.125s linear;
+            visibility: hidden;
+            opacity: 0;
+          "
+        >
+          <div
+            style="
+              border-top-left-radius: 8px;
+              border-top-right-radius: 8px;
+              position: relative;
+            "
+          >
+            <img
+              src="https://i.imgur.com/epCPAX1.png"
+              style="
+                /*! position: absolute; */
+                width: 100%;
+                height: 130px;
+                border-radius: inherit;
+              "
+            />
+            <div name="pfp">
+              <div
+                style="
+                  z-index: 10;
+                  position: absolute;
+                  height: 30px;
+                  left: 89px;
+                  bottom: -38px;
+                  width: 30px;
+                  background-color: #292b30;
+                  border-radius: 10vh;
+                "
+              ></div>
+              <img
+                src="https://lh3.googleusercontent.com/a-/AOh14GiiPFvmon8K1bxsCLiWIGMnUFVFnGD6FbD4ocLB=s96-c"
+                style="
+                  border-radius: 10vh;
+                  top: 70px;
+                  left: 20px;
+                  position: absolute;
+                  border: 8px #292b30 solid;
+                "
+              /><img
+                src="/webchat-imgs/status_dnd.svg"
+                style="
+                  z-index: 10;
+                  position: absolute;
+                  height: 35px;
+                  left: 75px;
+                  top: 100%;
+                "
+              />
+            </div>
+            <div
+              id="badges"
+              style="
+                /*! background-color: #ff0000; */
+                position: absolute;
+                height: 30px;
+                width: calc(100% - 150px);
+                left: 133px; /*! margin-top: 5px; */
+                max-height: 30px;
+                max-width: calc(100% - 150px);
+              "
+            >
+              <img style="height: inherit" src="/webchat-imgs/CAD.png" /><img
+                style="height: inherit"
+                src="/webchat-imgs/AS.svg"
+              />
+            </div>
+          </div>
+          <p
+            style="
+              color: white;
+              z-index: 4;
+              position: relative;
+              top: 30px;
+              left: 20px;
+              font-weight: bold;
+              font-size: 18px;
+            "
+          >
+            InimicalPart
+          </p>
+          <p
+            style="
+              position: relative;
+              top: -13px;
+              left: 140px;
+              z-index: 4;
+              color: #959595;
+            "
+          >
+            (inimi-authdev)
+          </p>
+          <p
+            style="
+              position: relative;
+              top: -30px;
+              color: #9a9a9a;
+              left: 20px; /*! height: auto; */
+            "
+          >
+            Developer at Authworria
+          </p>
+          <p style="left: 20px; position: relative; color: #949494; top: -30px">
+            About Me
+          </p>
+          <div
+            name="aboutme"
+            style="
+              position: relative;
+              width: calc(100% - 40px);
+              height: auto; /*! background-color: #232529; */ /*! top: 30px; */ /*! margin-top: 30px; */
+              margin-left: 20px;
+              margin-right: 20px;
+              border-radius: 8px;
+              top: -45px;
+            "
+          >
+            <p
+              style="
+                color: #ccc; /*! left: 5px; */
+                position: inherit;
+                font-size: 14px;
+                top: 5px;
+              "
+            >
+              I am a developer of the website Authworria.com<br /><br />Programmer
+              &amp; Developer<br />
+              Support me or my work at
+              <a name="aboutmelink" href="#"
+                >https://www.buymeacoffee.com/inimicalpart</a
+              ><br />
+              Email: me@inimicalpart.com<br />
+              Twitter: @InimicalPart
+            </p>
+          </div>
+        </div>
+
         <div class="dropdown">
           <div id="friend-list"></div>
           <div id="serverline"></div>
@@ -1112,6 +1381,12 @@
         width: 69%;
         margin-right: 0px;
         margin-left: 0px;
+      }
+      [name="aboutmelink"],
+      [name="aboutmelink"]:visited,
+      [name="aboutmelink"]:hover,
+      [name="aboutmelink"]:active {
+        color: inherit;
       }
 
       /* .customStatusSelect when we hover over the values in the dropdown */
@@ -1391,44 +1666,44 @@
       }
 
       #messageList {
-    overflow-x: hidden;
-    white-space: normal;
-    color: white;
-    position: fixed;
-    margin-top: 70px;
-    height: calc(100% - 129px);
-    width: 81.9%;
-    overflow-wrap: anywhere;
-  }
+        overflow-x: hidden;
+        white-space: normal;
+        color: white;
+        position: fixed;
+        margin-top: 70px;
+        height: calc(100% - 129px);
+        width: 81.9%;
+        overflow-wrap: anywhere;
+      }
 
-  #messageList li {
-    display: flex;
-    flex-direction: row;
-  }
+      #messageList li {
+        display: flex;
+        flex-direction: row;
+      }
 
-  #messageList li img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    margin-top: 5px;
-  }
+      #messageList li img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+        margin-top: 5px;
+      }
 
-  #messageList li #usrname {
-    top: 0;
-    left: 0;
-    margin: 0px;
-    height: 25px;
-    display: inline-table;
-  }
+      #messageList li #usrname {
+        top: 0;
+        left: 0;
+        margin: 0px;
+        height: 25px;
+        display: inline-table;
+      }
 
-  #messageList li #text {
-    margin-top: 21px;
-    margin-bottom: 0px;
-    margin-right: 0px;
-    position: relative;
-    left: -60px;
-  }
+      #messageList li #text {
+        margin-top: 21px;
+        margin-bottom: 0px;
+        margin-right: 0px;
+        position: relative;
+        left: -60px;
+      }
 
       #channelHeader {
         position: fixed;
@@ -1473,49 +1748,49 @@
         }
 
         #messageList {
-      color: white;
-      position: fixed;
-      margin-top: 70px;
-      height: calc(100% - 201px);
-      width: 95%;
-      padding-left: 10px;
-    }
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 95%;
+          padding-left: 10px;
+        }
 
-    #messageList li {
-      display: flex;
-      flex-direction: row;
-      overflow-x: hidden;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      height: auto;
-    }
+        #messageList li {
+          display: flex;
+          flex-direction: row;
+          overflow-x: hidden;
+          white-space: normal;
+          overflow-wrap: anywhere;
+          height: auto;
+        }
 
-    #messageList li #usrname {
-      display: inline-table;
-    }
+        #messageList li #usrname {
+          display: inline-table;
+        }
 
-    #messageList li img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-      margin-top: 5px;
-    }
+        #messageList li img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin-right: 10px;
+          margin-top: 5px;
+        }
 
-    #messageList li #usrname {
-      top: 0;
-      left: 0;
-      margin: 0px;
-      height: 25px;
-    }
+        #messageList li #usrname {
+          top: 0;
+          left: 0;
+          margin: 0px;
+          height: 25px;
+        }
 
-    #messageList li #text {
-      margin-top: 21px;
-      margin-bottom: 0px;
-      margin-right: 0px;
-      position: relative;
-      left: -60px;
-    }
+        #messageList li #text {
+          margin-top: 21px;
+          margin-bottom: 0px;
+          margin-right: 0px;
+          position: relative;
+          left: -60px;
+        }
 
         #messages {
           position: fixed;
@@ -1574,49 +1849,49 @@
         }
 
         #messageList {
-      color: white;
-      position: fixed;
-      margin-top: 70px;
-      height: calc(100% - 201px);
-      width: 95%;
-      padding-left: 10px;
-    }
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 95%;
+          padding-left: 10px;
+        }
 
-    #messageList li {
-      display: flex;
-      flex-direction: row;
-      overflow-x: hidden;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      height: auto;
-    }
+        #messageList li {
+          display: flex;
+          flex-direction: row;
+          overflow-x: hidden;
+          white-space: normal;
+          overflow-wrap: anywhere;
+          height: auto;
+        }
 
-    #messageList li #usrname {
-      display: inline-table;
-    }
+        #messageList li #usrname {
+          display: inline-table;
+        }
 
-    #messageList li img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-      margin-top: 5px;
-    }
+        #messageList li img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin-right: 10px;
+          margin-top: 5px;
+        }
 
-    #messageList li #usrname {
-      top: 0;
-      left: 0;
-      margin: 0px;
-      height: 25px;
-    }
+        #messageList li #usrname {
+          top: 0;
+          left: 0;
+          margin: 0px;
+          height: 25px;
+        }
 
-    #messageList li #text {
-      margin-top: 21px;
-      margin-bottom: 0px;
-      margin-right: 0px;
-      position: relative;
-      left: -60px;
-    }
+        #messageList li #text {
+          margin-top: 21px;
+          margin-bottom: 0px;
+          margin-right: 0px;
+          position: relative;
+          left: -60px;
+        }
 
         #messages {
           position: fixed;
@@ -1679,49 +1954,49 @@
         }
 
         #messageList {
-      color: white;
-      position: fixed;
-      margin-top: 70px;
-      height: calc(100% - 201px);
-      width: 95%;
-      padding-left: 10px;
-    }
+          color: white;
+          position: fixed;
+          margin-top: 70px;
+          height: calc(100% - 201px);
+          width: 95%;
+          padding-left: 10px;
+        }
 
-    #messageList li {
-      display: flex;
-      flex-direction: row;
-      overflow-x: hidden;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      height: auto;
-    }
+        #messageList li {
+          display: flex;
+          flex-direction: row;
+          overflow-x: hidden;
+          white-space: normal;
+          overflow-wrap: anywhere;
+          height: auto;
+        }
 
-    #messageList li #usrname {
-      display: inline-table;
-    }
+        #messageList li #usrname {
+          display: inline-table;
+        }
 
-    #messageList li img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-      margin-top: 5px;
-    }
+        #messageList li img {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin-right: 10px;
+          margin-top: 5px;
+        }
 
-    #messageList li #usrname {
-      top: 0;
-      left: 0;
-      margin: 0px;
-      height: 25px;
-    }
+        #messageList li #usrname {
+          top: 0;
+          left: 0;
+          margin: 0px;
+          height: 25px;
+        }
 
-    #messageList li #text {
-      margin-top: 21px;
-      margin-bottom: 0px;
-      margin-right: 0px;
-      position: relative;
-      left: -60px;
-    }
+        #messageList li #text {
+          margin-top: 21px;
+          margin-bottom: 0px;
+          margin-right: 0px;
+          position: relative;
+          left: -60px;
+        }
 
         #messages {
           position: fixed;
