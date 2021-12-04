@@ -632,10 +632,39 @@
                 lastMessage &&
                 lastMessage?.dataset?.sender === data?.senderUID
               ) {
+
+                // data.time
+                const time = new Date(data.time);
+                const timeString = time.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                
                 // last message is from current user
                 document.getElementById(
                   "temp-msg-" + data.messageId
-                ).innerHTML = "<p>sample text</p>";
+                ).innerHTML = "<div class='timebox' id='sender-pfp-" +
+                  data.messageId +
+                  "'>" + timeString +
+                  "</div>" + "<p id='aftermsg'>" + data.message + "</p>";
+                // css for sender pfp
+                document.getElementById("sender-pfp-" + data.messageId).style.cssText =
+                  "border-radius: 50%; " +
+                  "display: inline-flex; " +
+                  "align-items: center; " +
+                  "font-size: 10px; " +
+                  "text-align: center;" +
+                  "justify-content: center; " +
+                  "margin: 3.5px;" +
+                  "min-width: fit-content;" +
+                  "margin-right: 10px;";
+
+            
+      
+                  
+               // if an element has the attribute latest-msg also add the attribute no-pfp-msg
+
+ 
               } else {
                 // last message is from another user or no last message
                 document.getElementById(
@@ -730,7 +759,7 @@
             if (user) {
               // User is signed in.
               firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
-              socket = await io("https://ws.inimicalpart.com:4242");
+              socket = await io("https://ws.inimicalpart.com:4242"); // ws.inimicalpart.com:4242
               socket.on("connect_error", (err) => {
                 console.log("failed to connect to server");
                 failedConnections++;
@@ -1310,6 +1339,11 @@
     </div>
 
     <style>
+      
+      *::-webkit-scrollbar {
+        display: none;
+      }
+
       .pending {
         color: gray;
       }
@@ -1317,9 +1351,6 @@
       body {
         font-family: "Poppins", sans-serif;
         background-color: #2f3136;
-      }
-      body::-webkit-scrollbar {
-        display: none;
       }
 
       #pfp {
@@ -1685,9 +1716,36 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        margin-right: 10px;
-        margin-top: 5px;
+        justify-content: center;
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 5px;
+        margin-right: 13px;
       }
+
+      #messageList li .timebox {
+        color: transparent;
+        /* make it so the user is unable to copy */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+      }
+
+      #messageList li:hover {
+        background: #32353B;
+      }
+
+      /* when li is hovered over .timebox should turn white */
+
+      #messageList li:hover .timebox {
+        color: #524F54;
+      }
+
+      #aftermsg {
+        margin: 0px;      
+      }
+
 
       #messageList li #usrname {
         top: 0;
