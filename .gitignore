@@ -76,3 +76,6 @@ node_modules/
 
 # history folder
 .history/**
+
+# database file
+**/json.sqlite
