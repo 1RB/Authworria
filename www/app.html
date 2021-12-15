@@ -674,7 +674,7 @@
             if (user) {
               // User is signed in.
               firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
-              socket = await io("https://ws.inimicalpart.com:4242");
+              socket = await io("https://ws.inimicalpart.com:4242"); // ws.inimicalpart.com:4242
               socket.on("connect_error", (err) => {
                 console.log("failed to connect to server");
                 failedConnections++;
@@ -1656,6 +1656,11 @@
     </div>
 
     <style>
+      
+      *::-webkit-scrollbar {
+        display: none;
+      }
+
       .pending {
         color: gray;
       }
@@ -1663,9 +1668,6 @@
       body {
         font-family: "Poppins", sans-serif;
         background-color: #2f3136;
-      }
-      body::-webkit-scrollbar {
-        display: none;
       }
 
       #pfp {
@@ -2070,6 +2072,29 @@
       #aftermsg {
         margin: 0px;
       }
+
+      #messageList li .timebox {
+        color: transparent;
+        /* make it so the user is unable to copy */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+      }
+
+      #messageList li:hover {
+        background: #32353B;
+      }
+
+      /* when li is hovered over .timebox should turn white */
+
+      #messageList li:hover .timebox {
+        color: #524F54;
+      }
+
+      #aftermsg {
+        margin: 0px;      
+      }
+
 
       #messageList li #usrname {
         top: 0;

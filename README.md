@@ -62,11 +62,11 @@ I use the method `.getElementById` to get the HTML element associated with that 
   - [ ] Add a word filter to block inappropriate messages
   - [ ] Servers and Direct Messages
   - [ ] Create a chatroom for each game
-  - [ ] Custom status
-    - [ ] Show own status in the profile section
+  - [x] Custom status
+    - [x] Show own status in the profile section
     - [x] Make others be able to see your status
     - [x] Be able to change the status or remove it.
 - [ ] Multiplayer Web-Game
   - [ ] Authorize users with their token
-  - [ ] Design the game
+  - [x] Design the game
   - [ ] Add web-chat to the game
