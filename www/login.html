@@ -43,8 +43,12 @@
           appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
           measurementId: "G-P84R1SCWJB",
         };
-
-        const app = await firebase.initializeApp(firebaseConfig);
+        let app = null; 
+        if (!firebase.apps.length) {
+           app = await firebase.initializeApp(firebaseConfig);
+        } else {
+          app = firebase.app();
+        }
 
         document
           .getElementById("googlesignin")
@@ -61,7 +65,7 @@
 
         document
           .getElementById("discordsignup")
-          .addEventListener("click", DiscordLogin); //TODO: CHANGE TO SIGNUP MAYBE
+          .addEventListener("click", DiscordLogin);
 
         document
           .getElementById("signout")

@@ -55,106 +55,26 @@
       let mySocketId = null;
       let resetUponUpdate = false;
       let pendingMessages = [];
-      async function generateUserMenu(menudiv, data) {
-        let remfriend = document.createElement("div");
-        remfriend.id = "rem-friend";
-        remfriend.style.position = "absolute";
-        remfriend.style.bottom = "0";
-        remfriend.style.width = "100%";
-        remfriend.style.height = "40px";
-        // remfriend.style.backgroundColor = "#ff3333";
-        //display justify-content-center
-        remfriend.style.display = "flex";
-        remfriend.style.justifyContent = "center";
-        remfriend.style.alignItems = "center";
-        remfriend.style.marginBottom = "20px";
-        //border should be a seperator line
-        remfriend.style.border = "1px solid #ff3333";
-        remfriend.style.transition = "all 0.5s ease-in-out";
-        remfriend.style.cursor = "pointer";
-        remfriend.dataset.uid = data.uid;
-
-        //remfriend.style.borderRadius = "10px";
-
-        //put <p> in it with the text "Remove friend" centered both horizontally and vertically with white color
-        let remfriendp = document.createElement("p");
-        remfriendp.style.textAlign = "center";
-        remfriendp.style.margin = "auto";
-        remfriendp.style.color = "red";
-        remfriendp.style.transition = "all 0.5s ease-in-out";
-
-        remfriendp.innerHTML = "Remove friend";
-        remfriend.onmouseover = function () {
-          remfriend.style.backgroundColor = "#dd3333";
-          remfriendp.style.color = "white";
-        };
-        remfriend.onmouseout = function () {
-          remfriend.style.backgroundColor = "";
-          remfriendp.style.color = "red";
-        };
-        //on click or tap, remove friend from the list
-        remfriend.onclick = function () {
-          socket.emit("removeKnown", {
-            knownUid: data.uid,
-            token: firebase?.auth()?.currentUser?.xa,
-          });
-        };
-
-        //new div with id "view-profile" that has the same properties as remfriend except for the margin-bottom, border and background color
-        let viewprofile = document.createElement("div");
-        viewprofile.id = "view-profile";
-        viewprofile.style.position = "absolute";
-        viewprofile.style.bottom = "top";
-        viewprofile.style.width = "100%";
-        viewprofile.style.height = "40px";
-        // viewprofile.style.backgroundColor = "#33ff33";
-        //display justify-content-center
-        viewprofile.style.display = "flex";
-        viewprofile.style.justifyContent = "center";
-        viewprofile.style.alignItems = "center";
-        viewprofile.style.marginTop = "20px";
-        //border should be a seperator line
-        viewprofile.style.border = "1px solid #000";
-        viewprofile.dataset.uid = data.uid;
-        viewprofile.onmouseover = function () {
-          viewprofile.style.cursor = "pointer";
-        };
-        viewprofile.onmouseout = function () {
-          viewprofile.style.cursor = "";
-        };
-        viewprofile.onclick = function () {
-          document.getElementById("coverbg").style.visibility = "visible";
-          document.getElementById("coverbg").style.opacity = "1";
-          document.getElementById("profile-view").style.visibility = "visible";
-          document.getElementById("profile-view").style.opacity = "1";
-          for (let i of document.getElementsByName("user-menu")) {
-            i.remove();
-          }
-        };
-        let viewprofilep = document.createElement("p");
-        viewprofilep.style.textAlign = "center";
-        viewprofilep.style.margin = "auto";
-        viewprofilep.style.color = "black";
-        viewprofilep.style.transition = "all 0.5s ease-in-out";
-        //text "View profile"
-        viewprofilep.innerHTML = "View profile";
-        // attach
-
-        viewprofile.appendChild(viewprofilep);
-        remfriend.appendChild(remfriendp);
-
-        //on hover change background color of remfriend to #ff3333 and remfriendp text color to white in an animation
-        menudiv.appendChild(viewprofile);
-        menudiv.appendChild(remfriend);
-
-        return menudiv;
-      }
+      let sendNotif = null;
     </script>
     <script>
       //on window load
       window.onload = () => {
         (async () => {
+          sendNotif = sendNotificaiton;
           let currentUser = {};
+          const badgeResolver = {
+            CAD: {
+              name: "Certified Authworria Developer",
+              short: "CAD",
+              img: "/webchat-imgs/CAD.png",
+            },
+            AS: {
+              name: "Authworria Staff",
+              short: "AS",
+              img: "/webchat-imgs/AS.svg",
+            },
+          };
 
           function setIdleTimer() {
             let previousStatus = null;
@@ -299,23 +219,23 @@
             friendname.id = "friend-name-" + data.uid;
             friendname.classList.add("friend-name");
             friendname.style.top = -64 + 55 * amountOfFriends + "px";
-            friendname.style.left = "60px";
+            friendname.style.left = "65px";
             friendname.innerHTML = data.name; // change to username later
             let friendstatusp = document.createElement("p");
             friendstatusp.id = "friend-status-" + data.uid;
             friendstatusp.classList.add("friend-status");
             friendstatusp.style.top = -42 + 55 * amountOfFriends + "px";
-            friendstatusp.style.left = "60px";
+            friendstatusp.style.left = "65px";
             // sus
             if (
               getTextWidth(data.status, getCanvasFontSize(friendstatusp)) >
-              250 - 9
+              245 - 9
             ) {
               // if the status is too long, shorten it until its less than 200 pixels minus the size of "..." (9 px) and add ...
               let status = data.status;
               while (
                 getTextWidth(status, getCanvasFontSize(friendstatusp)) >
-                250 - 9
+                245 - 9
               ) {
                 status = status.substring(0, status.length - 1);
               }
@@ -352,6 +272,9 @@
                 token: firebase?.auth()?.currentUser?.xa,
               });
               //
+            });
+            socket.on("getInfoProfRes", async function (data) {
+              if (data.err) return;
             });
             socket.on("removeKnownRes", async function (data) {
               // Remove the uid user from the friend list (element has id "user-<uid>")
@@ -393,38 +316,20 @@
               if (serverLastUpdate != data.lastUpdateTime && resetUponUpdate) {
                 console.log("Update from server:", data);
                 clearInterval(serverUpdateTimer);
-                socket.disconnect;
+                socket.disconnect();
                 return window.location.reload(true);
               }
             });
-            socket.on("getInfoProfRes", function (data) {
-              const badgeResolver = {
-                CAD: {
-                  name: "Certified Authworria Developer",
-                  short: "CAD",
-                  img_colored: "/img/CAD.png",
-                  img_grayscale: "/img/CAD.svg",
-                },
-                AS: {
-                  name: "Authworria Staff",
-                  short: "AS",
-                  img_colored: "/img/AS.png",
-                  img_grayscale: "/img/AS.svg",
-                },
-              };
+            socket.on("getInfoProfRes", async function (data) {
               if (data.err) return;
-              if (data.user.badges.length > 0) {
-                console.log("Parsing badges....");
-                for (let i of data.user.badges) {
-                  let badge = badgeResolver[i];
-                  console.log(
-                    "Badge detected: " +
-                      badge.short +
-                      ". Long name: " +
-                      badge.name
-                  );
-                }
-              }
+              let profile = await generateProfile(data);
+              document.body.appendChild(profile);
+              document.getElementById(
+                "profile-view-" + data.uid
+              ).style.visibility = "visible";
+              document.getElementById(
+                "profile-view-" + data.uid
+              ).style.opacity = "1";
             });
             socket.on("disconnect", function () {
               // Executes when the client disconnects from the server
@@ -487,13 +392,18 @@
               }
               currentUser.status = data.status;
             });
-            socket.on("usrChangeStatus", function (data) {
+            socket.on("usrChangeInfo", function (data) {
               // Executes when a user changes their status.
               // Returns: {uid: <user uid>, statusText: <status text>, status: <new status>, statusImg: <status image location>}
               let statusText = data.statusText || "";
               if (document.getElementById("friend-statusicon-" + data.uid)) {
-                document.getElementById("friend-statusicon-" + data.uid).src =
-                  data.statusImg;
+                if (
+                  document.getElementById("friend-statusicon-" + data.uid)
+                    .src !== data.statusImg
+                ) {
+                  document.getElementById("friend-statusicon-" + data.uid).src =
+                    data.statusImg;
+                }
                 if (
                   getTextWidth(
                     data.status,
@@ -533,6 +443,9 @@
                 }
                 document.getElementById("friend-status-" + data.uid).innerHTML =
                   escapeString(statusText);
+              }
+              if (document.getElementById("profile-view-" + data.uid)) {
+                updateProfile(data);
               }
             });
             socket.on("getStatusRes", function (data) {
@@ -580,7 +493,10 @@
               }
               if (data.uid == currentUser.uid) return;
               // if not, check if uid is in friend list, if so return
-              if (document.getElementById("friend-pfp-" + data.uid)) return;
+              if (document.getElementById("friend-pfp-" + data.uid))
+                return console.log(
+                  "User: " + data.uid + " is already in friend list"
+                );
               // add user to friend list using addUser function with the data variable passed in
               addUser(data);
               console.log("User added:", data.uid + " (" + data.name + ")");
@@ -592,10 +508,11 @@
               if (data.err) {
                 console.log("Error:", data.err);
               } else {
-                console.log("Known users:", data.knownUsers);
-                for (let i = 0; i < data.knownUsers.length; i++) {
+                let known = data.knownUsers.sort();
+                console.log("Known users:", known);
+                for (let i = 0; i < known.length; i++) {
                   await socket.emit("getInfo", {
-                    uid: data.knownUsers[i],
+                    uid: known[i],
                     token: firebase?.auth()?.currentUser?.xa,
                   });
                 }
@@ -616,33 +533,60 @@
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, message: <message>, sender: <sender>, senderUID: <senders UID>, senderImg: <senders pfp>, time: <time>}
               if (data.err) return console.log(data.err);
               document
-                .getElementById("temp-msg-" + data.messageId)
-                .classList.remove("pending");
-              document
-                .getElementById("temp-msg-" + data.messageId)
+                .getElementById("temp-msg-" + data.elementcode)
                 .removeAttribute("class");
               let lastMessage = document.getElementsByName("latest-msg")[0];
               for (let i of document.getElementsByName("latest-msg")) {
                 i.removeAttribute("name");
               }
               document
-                .getElementById("temp-msg-" + data.messageId)
+                .getElementById("temp-msg-" + data.elementcode)
                 .setAttribute("name", "latest-msg");
               if (
                 lastMessage &&
                 lastMessage?.dataset?.sender === data?.senderUID
               ) {
+                // data.time
+                const time = new Date(data.time);
+                const timeString = time.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+
                 // last message is from current user
                 document.getElementById(
-                  "temp-msg-" + data.messageId
-                ).innerHTML = "<p>sample text</p>";
+                  "temp-msg-" + data.elementcode
+                ).innerHTML =
+                  "<div class='timebox' id='sender-pfp-" +
+                  data.messageID +
+                  "'>" +
+                  timeString +
+                  "</div>" +
+                  "<p id='aftermsg'>" +
+                  data.message +
+                  "</p>";
+                // css for sender pfp
+                document.getElementById(
+                  "sender-pfp-" + data.messageID
+                ).style.cssText =
+                  "border-radius: 50%; " +
+                  "display: inline-flex; " +
+                  "align-items: center; " +
+                  "font-size: 10px; " +
+                  "text-align: center;" +
+                  "justify-content: center; " +
+                  "margin: 3.5px;" +
+                  "min-width: fit-content;" +
+                  "margin-right: 10px;";
+
+                // if an element has the attribute latest-msg also add the attribute no-pfp-msg
               } else {
                 // last message is from another user or no last message
                 document.getElementById(
-                  "temp-msg-" + data.messageId
+                  "temp-msg-" + data.elementcode
                 ).innerHTML =
                   "<img id='sender-pfp-" +
-                  data.messageId +
+                  data.messageID +
                   "'>" +
                   "<p id='usrname'><u><b>" +
                   data.sender +
@@ -650,18 +594,18 @@
                   "<br> " +
                   data.message +
                   "</p>";
-                document.getElementById("sender-pfp-" + data.messageId).src =
+                document.getElementById("sender-pfp-" + data.messageID).src =
                   data.senderImg;
               }
 
               document.getElementById(
-                "temp-msg-" + data.messageId
+                "temp-msg-" + data.elementcode
               ).dataset.time = data.time;
               document.getElementById(
-                "temp-msg-" + data.messageId
+                "temp-msg-" + data.elementcode
               ).dataset.sender = data.senderUID;
-              document.getElementById("temp-msg-" + data.messageId).id =
-                "message-" + data.messageId;
+              document.getElementById("temp-msg-" + data.elementcode).id =
+                "message-" + data.messageID;
             });
             socket.on("receiveMessage", function (data) {
               // Executes when the client receives a message
@@ -816,6 +760,146 @@
               .getComputedStyle(element, null)
               .getPropertyValue(prop);
           }
+          function customgetCssStyle(el, prop) {
+            return el.style[prop];
+          }
+          function updateProfile(data) {
+            console.log(data);
+            document.getElementById("profile-status-" + data.uid).src =
+              data.statusImg;
+            let statustext = document.getElementById(
+              "profile-status-text-" + data.uid
+            );
+            if (
+              getTextWidth(
+                data.statusText,
+                customgetCanvasFontSize(statustext)
+              ) > 531
+            ) {
+              //loop thru text and remove one character until its less than 531 pixels, then set the result to statustext.innerHTML with "..."
+              let text = data.statusText;
+              let textwidth = getTextWidth(
+                text,
+                customgetCanvasFontSize(statustext)
+              );
+              while (textwidth > 531) {
+                text = text.substring(0, text.length - 1);
+                textwidth = getTextWidth(
+                  text,
+                  customgetCanvasFontSize(statustext)
+                );
+              }
+              statustext.innerHTML = text + "...";
+            } else {
+              statustext.innerHTML = data.statusText;
+            }
+            document.getElementById("profile-name-" + data.uid).innerHTML =
+              data.username;
+            document
+              .getElementById("profile-banner-container-" + data.uid)
+              .childNodes[0].remove();
+            let banner;
+            if (data.banner) {
+              banner = document.createElement("img");
+              banner.id = "profile-banner-" + data.uid;
+              banner.src = data.banner;
+              banner.style.width = "100%";
+              banner.style.height = "130px";
+              banner.style.borderRadius = "inherit";
+            } else {
+              banner = document.createElement("div");
+              banner.style.width = "100%";
+              banner.style.height = "130px";
+              banner.style.borderRadius = "inherit";
+              banner.style.backgroundColor = "#000";
+            }
+            document
+              .getElementById("profile-banner-container-" + data.uid)
+              .appendChild(banner);
+            document.getElementById("profile-pfp-" + data.uid).src =
+              data.avatar;
+            try {
+              if (document.getElementById("profile-aboutme-txt-" + data.uid))
+                document
+                  .getElementById("profile-aboutme-txt-" + data.uid)
+                  ?.remove();
+              if (document.getElementById("profile-aboutme-div-" + data.uid))
+                document
+                  .getElementById("profile-aboutme-div-" + data.uid)
+                  ?.remove();
+              if (document.getElementById("profile-aboutme-" + data.uid))
+                document
+                  .getElementById("profile-aboutme-" + data.uid)
+                  ?.remove();
+            } catch (error) {
+              console.log(error);
+            }
+            console.log(data);
+            if (data.aboutMe) {
+              aboutme = document.createElement("p");
+              aboutme.id = "profile-aboutme-txt-" + data.uid;
+              aboutme.style.position = "relative";
+              aboutme.style.top = "-30px";
+              aboutme.style.left = "20px";
+              aboutme.style.color = "#949494";
+              aboutme.innerHTML = "About Me";
+              //create aboutme div
+              aboutmeDiv = document.createElement("div");
+              aboutmeDiv.id = "profile-aboutme-div-" + data.uid;
+              aboutmeDiv.style.position = "relative";
+              aboutmeDiv.style.top = "-45px";
+              aboutmeDiv.setAttribute("name", "aboutme");
+              aboutmeDiv.style.width = "calc(100% - 40px)";
+              aboutmeDiv.style.height = "auto";
+              aboutmeDiv.style.marginLeft = "20px";
+              aboutmeDiv.style.marginRight = "20px";
+              aboutmeDiv.style.borderRadius = "8px";
+
+              //create aboutme text
+              aboutmeText = document.createElement("p");
+              aboutmeText.id = "profile-aboutme-" + data.uid;
+
+              aboutmeText.style.position = "inherit";
+              aboutmeText.style.top = "5px";
+              aboutmeText.style.fontSize = "14px";
+              aboutmeText.style.color = "#ccc";
+              aboutmeText.innerHTML = convertAbtMe(data.aboutMe);
+              aboutmeDiv.appendChild(aboutmeText);
+              document
+                .getElementById("profile-view-" + data.uid)
+                .appendChild(aboutmeDiv);
+              document
+                .getElementById("profile-view-" + data.uid)
+                .appendChild(aboutme);
+            }
+
+            //friendcode
+            document.getElementById(
+              "profile-friendcode-" + data.uid
+            ).innerHTML = "(" + data.friendCode + ")";
+            //remove every child in badges
+            document.getElementById("profile-badges-" + data.uid).innerHTML =
+              "";
+            //add badges
+            let badgesimgs = data.badges || [];
+            console.log(data);
+            // loop through all the badges and give it to the badgeResolver function that will return the location of the image which will be under badgeResolver(badge).img
+            for (let i = 0; i < badgesimgs.length; i++) {
+              let badge = badgesimgs[i];
+              let badgeimg = badgeResolver[badge];
+              let badgeimgdiv = document.createElement("img");
+              badgeimgdiv.src = badgeimg.img;
+              badgeimgdiv.style.height = "inherit";
+              if (
+                document.getElementById("profile-badges-" + data.uid)
+                  .childElementCount < 15
+              ) {
+                document
+                  .getElementById("profile-badges-" + data.uid)
+                  .appendChild(badgeimgdiv);
+              }
+            }
+          }
 
           function getCanvasFontSize(el = document.body) {
             const fontWeight = getCssStyle(el, "font-weight") || "normal";
@@ -825,16 +909,376 @@
 
             return `${fontWeight} ${fontSize} ${fontFamily}`;
           }
+          function customgetCanvasFontSize(el = document.body) {
+            const fontWeight = customgetCssStyle(el, "font-weight") || "normal";
+            const fontSize = customgetCssStyle(el, "font-size") || "16px";
+            const fontFamily =
+              customgetCssStyle(el, "font-family") || "Times New Roman";
 
-          function showUserDetail(user) {
-            document.getElementById("profile-img").innerHTML += `
-        <img id="pfp" src=${user.photoURL}></img>
-        `;
-            document.getElementById("profile-username").innerHTML += `
-        <span id="username"><b>${escapeString(user.displayName)}</b></span>
-        `;
+            return `${fontWeight} ${fontSize} ${fontFamily}`;
           }
 
+          async function generateUserMenu(menudiv, data) {
+            let remfriend = document.createElement("div");
+            remfriend.id = "rem-friend";
+            remfriend.style.position = "absolute";
+            remfriend.style.bottom = "0";
+            remfriend.style.width = "100%";
+            remfriend.style.height = "40px";
+            // remfriend.style.backgroundColor = "#ff3333";
+            //display justify-content-center
+            remfriend.style.display = "flex";
+            remfriend.style.justifyContent = "center";
+            remfriend.style.alignItems = "center";
+            remfriend.style.marginBottom = "20px";
+            //border should be a seperator line
+            remfriend.style.border = "1px solid #ff3333";
+            remfriend.style.transition = "all 0.5s ease-in-out";
+            remfriend.style.cursor = "pointer";
+            remfriend.dataset.uid = data.uid;
+
+            //remfriend.style.borderRadius = "10px";
+
+            //put <p> in it with the text "Remove friend" centered both horizontally and vertically with white color
+            let remfriendp = document.createElement("p");
+            remfriendp.style.textAlign = "center";
+            remfriendp.style.margin = "auto";
+            remfriendp.style.color = "red";
+            remfriendp.style.transition = "all 0.5s ease-in-out";
+
+            remfriendp.innerHTML = "Remove friend";
+            remfriend.onmouseover = function () {
+              remfriend.style.backgroundColor = "#dd3333";
+              remfriendp.style.color = "white";
+            };
+            remfriend.onmouseout = function () {
+              remfriend.style.backgroundColor = "";
+              remfriendp.style.color = "red";
+            };
+            //on click or tap, remove friend from the list
+            remfriend.onclick = function () {
+              socket.emit("removeKnown", {
+                knownUid: data.uid,
+                token: firebase?.auth()?.currentUser?.xa,
+              });
+            };
+
+            //new div with id "view-profile" that has the same properties as remfriend except for the margin-bottom, border and background color
+            let viewprofile = document.createElement("div");
+            viewprofile.id = "view-profile";
+            viewprofile.style.position = "absolute";
+            viewprofile.style.bottom = "top";
+            viewprofile.style.width = "100%";
+            viewprofile.style.height = "40px";
+            // viewprofile.style.backgroundColor = "#33ff33";
+            //display justify-content-center
+            viewprofile.style.display = "flex";
+            viewprofile.style.justifyContent = "center";
+            viewprofile.style.alignItems = "center";
+            viewprofile.style.marginTop = "20px";
+            //border should be a seperator line
+            viewprofile.style.border = "1px solid #000";
+            viewprofile.dataset.uid = data.uid;
+            viewprofile.onmouseover = function () {
+              viewprofile.style.cursor = "pointer";
+            };
+            viewprofile.onmouseout = function () {
+              viewprofile.style.cursor = "";
+            };
+            viewprofile.onclick = async function () {
+                return alert("Under construction.") // TODO: remove this when finished
+              document.getElementById("coverbg").style.visibility = "visible";
+              document.getElementById("coverbg").style.opacity = "1";
+              for (let i of document.getElementsByName("user-menu")) {
+                i.remove();
+              }
+              socket.emit("getInfoProf", {
+                uid: data.uid,
+                token: firebase?.auth()?.currentUser?.xa,
+              });
+              //   document.getElementById("profile-view").style.visibility =
+              //     "visible";
+              //   document.getElementById("profile-view").style.opacity = "1";
+            };
+
+            let viewprofilep = document.createElement("p");
+            viewprofilep.style.textAlign = "center";
+            viewprofilep.style.margin = "auto";
+            viewprofilep.style.color = "black";
+            viewprofilep.style.transition = "all 0.5s ease-in-out";
+            //text "View profile"
+            viewprofilep.innerHTML = "View profile";
+            // attach
+
+            viewprofile.appendChild(viewprofilep);
+            remfriend.appendChild(remfriendp);
+
+            //on hover change background color of remfriend to #ff3333 and remfriendp text color to white in an animation
+            menudiv.appendChild(viewprofile);
+            menudiv.appendChild(remfriend);
+
+            return menudiv;
+          }
+          async function generateProfile(data) {
+            console.log("data", data);
+            //rewrite the following code in html using document.createElement()
+            /*
+      <div id="profile-view" style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);width: 600px;height: 500px;background-color: #292b30;border-radius: 8px;overflow: hidden;z-index: 100000;height: auto;"><div style="border-top-left-radius: 8px;border-top-right-radius: 8px;position: relative;">
+      <img src="https://i.imgur.com/epCPAX1.png" style="width: 100%;height: 130px;border-radius: inherit;">
+      <div name="pfp">
+
+        <div style="z-index: 10;position: absolute;height: 30px;left: 89px;bottom: -38px;width: 30px;background-color: #292b30;border-radius: 10vh;"></div><img src="https://lh3.googleusercontent.com/a-/AOh14GiiPFvmon8K1bxsCLiWIGMnUFVFnGD6FbD4ocLB=s96-c" style="border-radius: 10vh;top: 70px;left: 20px;position: absolute;border: 8px #292b30 solid;"><img src="/webchat-imgs/status_dnd.svg" style="z-index: 10;position: absolute;height: 35px;left: 75px;top: 100%;">
+        </div>
+        <div id="badges" style="position: absolute;height: 30px;width: calc(100% - 150px);left: 133px;max-height: 30px;max-width: calc(100% - 150px);"><img style="height: inherit;" src="/webchat-imgs/CAD.png"><img style="height: inherit;" src="/webchat-imgs/AS_WTTR.svg"></div></div><p style="color: white;z-index: 4;position: relative;top: 30px;left: 20px;font-weight: bold;font-size: 18px;">InimicalPart</p><p style="position: relative;top: -13px;left: 140px;z-index: 4;color: #959595;">(inimi-authdev)</p>
+        <p style="position: relative;top: -30px;color: #9a9a9a;left: 20px;">Developer at Authworria</p><p style="left: 20px;position: relative;color: #949494;top: -30px;">About Me</p><div name="aboutme" style="position: relative;width: calc(100% - 40px);height: auto;margin-left: 20px;margin-right: 20px;border-radius: 8px;top: -45px;"><p style="color: #ccc;position: inherit;font-size: 14px;top: 5px;">I am a developer of the website Authworria.com<br><br>Programmer &amp; Developer<br>
+        Support me or my work at <a name="aboutmelink" href="#">https://www.buymeacoffee.com/inimicalpart</a><br>
+        Email: me@inimicalpart.com<br>
+        Twitter: @InimicalPart</p></div></div>
+      */
+            let profile = document.createElement("div");
+            profile.id = "profile-view-" + data.uid;
+            profile.setAttribute("name", "profile-view");
+            profile.style.position = "absolute";
+            profile.style.top = "50%";
+            profile.style.left = "50%";
+            profile.style.transform = "translate(-50%, -50%)";
+            profile.style.width = "600px"; // set to auto later
+            profile.style.backgroundColor = "#292b30";
+            profile.style.borderRadius = "8px";
+            profile.style.overflow = "hidden";
+            profile.style.zIndex = "100000";
+            profile.style.visibility = "hidden";
+            profile.style.opacity = "0";
+            profile.style.transition = "visibility 0s, opacity 0.125s linear";
+            profile.style.height = "auto";
+            //create top part
+            let profiletop = document.createElement("div");
+            profiletop.style.borderTopLeftRadius = "8px";
+            profiletop.style.borderTopRightRadius = "8px";
+            profiletop.style.position = "relative";
+            //create banner
+            let bannercontainer = document.createElement("div");
+            bannercontainer.id = "profile-banner-container-" + data.uid;
+            bannercontainer.style.position = "relative";
+            bannercontainer.style.height = "130px";
+            bannercontainer.style.width = "100%";
+            bannercontainer.style.borderRadius = "inherit";
+
+            let banner;
+            if (data.banner) {
+              banner = document.createElement("img");
+              banner.id = "profile-banner-" + data.uid;
+              banner.src = data.banner;
+              banner.style.width = "100%";
+              banner.style.height = "130px";
+              banner.style.borderRadius = "inherit";
+            } else {
+              banner = document.createElement("div");
+              banner.style.width = "100%";
+              banner.style.height = "130px";
+              banner.style.borderRadius = "inherit";
+              banner.style.backgroundColor = "#000";
+            }
+            //create pfp container
+            let pfp = document.createElement("div");
+            pfp.setAttribute("name", "pfp");
+            //create outline for status
+            let outline = document.createElement("div");
+            outline.style.zIndex = "10";
+            outline.style.position = "absolute";
+            outline.style.height = "30px";
+            outline.style.left = "89px";
+            outline.style.bottom = "-38px";
+            outline.style.width = "30px";
+            outline.style.backgroundColor = "#292b30";
+            outline.style.borderRadius = "10vh";
+            //create pfp
+            let pfpimg = document.createElement("img");
+            pfpimg.id = "profile-pfp-" + data.uid;
+            pfpimg.src = data.avatar;
+            pfpimg.style.borderRadius = "10vh";
+            pfpimg.style.top = "70px";
+            pfpimg.style.left = "20px";
+            pfpimg.style.height = "90px";
+            pfpimg.style.width = "90px";
+            pfpimg.style.position = "absolute";
+            pfpimg.style.border = "8px #292b30 solid";
+            //create status container, the image of the status is data.statusIcon
+            let status = document.createElement("img");
+            status.src = data.statusIcon;
+            status.id = "profile-status-" + data.uid;
+            status.style.zIndex = "10";
+            status.style.position = "absolute";
+            status.style.height = "35px";
+            status.style.left = "75px";
+            status.style.top = "100%";
+            //create badges container
+            let badges = document.createElement("div");
+            badges.id = "profile-badges-" + data.uid;
+            badges.style.position = "absolute";
+            badges.style.height = "30px";
+            badges.style.width = "calc(100% - 150px)";
+            badges.style.left = "133px";
+            badges.style.maxHeight = "30px";
+            badges.style.maxWidth = "calc(100% - 150px)";
+            badges.style.whiteSpace = "nowrap";
+            badges.style.marginTop = "5px";
+            //create badges
+            let badgesimgs = data.badges || [];
+            // loop through all the badges and give it to the badgeResolver function that will return the location of the image which will be under badgeResolver(badge).img
+            for (let i = 0; i < badgesimgs.length; i++) {
+              let badge = badgesimgs[i];
+              let badgeimg = badgeResolver[badge];
+              let badgeimgdiv = document.createElement("img");
+              badgeimgdiv.src = badgeimg.img;
+              badgeimgdiv.style.height = "inherit";
+              if (badges.childElementCount < 15) {
+                badges.appendChild(badgeimgdiv);
+              }
+            }
+            //create name
+            let name = document.createElement("p");
+            name.id = "profile-name-" + data.uid;
+            name.style.color = "white";
+            name.style.fontSize = "18px";
+            name.style.fontWeight = "bold";
+            name.style.position = "relative";
+            name.style.top = "30px";
+            name.style.left = "20px";
+            name.style.fontFamily = "Poppins, sans-serif";
+            name.innerHTML = data.name;
+            console.log(
+              parseFloat(
+                getTextWidth(data.name, customgetCanvasFontSize(name))
+              ) +
+                25 +
+                "px"
+            );
+            console.log(customgetCanvasFontSize(name));
+            //create friendCode
+            let friendCode = document.createElement("p");
+            friendCode.id = "profile-friendcode-" + data.uid;
+            friendCode.style.color = "#959595";
+            friendCode.style.position = "relative";
+            friendCode.style.top = "-13px";
+            console.log(data.name, name);
+            friendCode.style.left =
+              parseFloat(
+                getTextWidth(data.name, customgetCanvasFontSize(name))
+              ) +
+              25 +
+              "px";
+            console.log("(" + data.friendCode + ")");
+            friendCode.innerHTML = "(" + data.friendCode + ")";
+            //create statustext
+            let statustext = document.createElement("p");
+            statustext.id = "profile-status-text-" + data.uid;
+            statustext.style.position = "relative";
+            statustext.style.top = "-30px";
+            statustext.style.left = "20px";
+            statustext.style.color = "#9a9a9a";
+            if (
+              getTextWidth(data.status, customgetCanvasFontSize(statustext)) >
+              531
+            ) {
+              //loop thru text and remove one character until its less than 531 pixels, then set the result to statustext.innerHTML with "..."
+              let text = data.status;
+              let textwidth = getTextWidth(
+                text,
+                customgetCanvasFontSize(statustext)
+              );
+              while (textwidth > 531) {
+                text = text.substring(0, text.length - 1);
+                textwidth = getTextWidth(
+                  text,
+                  customgetCanvasFontSize(statustext)
+                );
+              }
+              statustext.innerHTML = text + "...";
+            } else {
+              statustext.innerHTML = data.status;
+            }
+            //create aboutme
+            let aboutme = null;
+            let aboutmeDiv = null;
+            let aboutmeText = null;
+
+            if (data.aboutMe) {
+              aboutme = document.createElement("p");
+              aboutme.id = "profile-aboutme-txt-" + data.uid;
+              aboutme.style.position = "relative";
+              aboutme.style.top = "-30px";
+              aboutme.style.left = "20px";
+              aboutme.style.color = "#949494";
+              aboutme.innerHTML = "About Me";
+              //create aboutme div
+              aboutmeDiv = document.createElement("div");
+              aboutmeDiv.id = "profile-aboutme-div-" + data.uid;
+              aboutmeDiv.style.position = "relative";
+              aboutmeDiv.style.top = "-45px";
+              aboutmeDiv.setAttribute("name", "aboutme");
+              aboutmeDiv.style.width = "calc(100% - 40px)";
+              aboutmeDiv.style.height = "auto";
+              aboutmeDiv.style.marginLeft = "20px";
+              aboutmeDiv.style.marginRight = "20px";
+              aboutmeDiv.style.borderRadius = "8px";
+
+              //create aboutme text
+              aboutmeText = document.createElement("p");
+              aboutmeText.id = "profile-aboutme-" + data.uid;
+
+              aboutmeText.style.position = "inherit";
+              aboutmeText.style.top = "5px";
+              aboutmeText.style.fontSize = "14px";
+              aboutmeText.style.color = "#ccc";
+              aboutmeText.innerHTML = convertAbtMe(data.aboutMe);
+            }
+
+            //append everything to each other
+            profile.appendChild(profiletop);
+            bannercontainer.appendChild(banner);
+            profiletop.appendChild(bannercontainer);
+            profiletop.appendChild(pfp);
+            pfp.appendChild(outline);
+            pfp.appendChild(pfpimg);
+            pfp.appendChild(status);
+            profiletop.appendChild(badges);
+            profile.appendChild(name);
+            profile.appendChild(friendCode);
+            profile.appendChild(statustext);
+            if (aboutme && aboutmeDiv && aboutmeText) {
+              profile.appendChild(aboutme);
+              profile.appendChild(aboutmeDiv);
+              aboutmeDiv.appendChild(aboutmeText);
+            }
+            return profile;
+          }
+          function convertAbtMe(text) {
+            // there are atleast 2 of **s in text
+            while (text.includes("**") && text.split("**").length > 1) {
+              text = text.replace("**", "<br>").replace("**", "<br>");
+            }
+            text = text.replace("\n", "<br>");
+            return text;
+          }
+          function showUserDetail(user) {
+            document.getElementById("profile-img").innerHTML += `
+          <img id="pfp" src=${user.photoURL}></img>
+          `;
+            document.getElementById("profile-username").innerHTML += `
+          <span id="username"><b>${escapeString(user.displayName)}</b></span>
+          `;
+          }
+          function sendNotificaiton(author, message, authorimg) {
+            if (/electron/i.test(navigator.userAgent)) {
+              if (window.notificationHandler?.send) {
+                window.notificationHandler.send(author, {
+                  msg: message,
+                  img: authorimg,
+                });
+              }
+            }
+          }
           function escapeString(str) {
             // escape string for html
             return str
@@ -874,34 +1318,49 @@
               }
               return result;
             }
+            function getServer() {
+              //get the name variable of the ol with id messageList
+              var messageList = document.getElementById("messageList");
+              //get the name variable of the ol with id messageList
+              var server = currentUser.focusedServer;
+              return server;
+            }
+            function setServer(server) {
+              //get the name variable of the ol with id messageList
+              var messageList = document.getElementById("messageList");
+              //get the name variable of the ol with id messageList
+              messageList.setAttribute("name", server);
+              currentUser.focusedServer = server;
+            }
             function sendMessage() {
               var message = document.getElementById("messageBox").value;
+              let code = Math.floor(new Date().getTime() * (Math.random() + 1));
               if (message != "") {
-                let randomId = makeID(16);
                 socket.emit("sendMessage", {
                   message: escapeString(message),
-                  randomId: randomId,
                   sender: socket.id,
                   token: firebase?.auth()?.currentUser?.xa,
+                  elementcode: code,
+                  server: currentUser.focusedServer || "global",
                 });
 
                 document.getElementById("messageList").innerHTML +=
                   "<li id='temp-msg-" +
-                  randomId +
+                  code +
                   "' class='pending'>" +
                   "<img id='sender-pfp-" +
-                  randomId +
+                  code +
                   "'>" +
                   "<p id='usrname'><u><b>" +
-                  firebase.auth().currentUser.displayName +
+                  currentUser.name +
                   "</b></u>" +
                   "<br> " +
                   escapeString(message) +
                   "</p>" +
                   "</li>";
                 document.getElementById("messageList").innerHTML += "<br> ";
-                document.getElementById("sender-pfp-" + randomId).src =
-                  firebase.auth().currentUser.photoURL;
+                document.getElementById("sender-pfp-" + code).src =
+                  currentUser.picture;
                 document.getElementById("messageList").scrollTop =
                   document.getElementById("messageList").scrollHeight;
                 document.getElementById("messageBox").value = "";
@@ -999,6 +1458,14 @@
               .getElementById("customStatus")
               .addEventListener("click", async function () {
                 document.getElementById("statusChange").style.display = "none";
+                let alertInfo = {
+                  online: currentUser.status === "online" ? "selected" : "",
+                  idle: currentUser.status === "idle" ? "selected" : "",
+                  dnd: currentUser.status === "dnd" ? "selected" : "",
+                  invisible:
+                    currentUser.status === "invisible" ? "selected" : "",
+                  custom: currentUser.statusText,
+                };
                 // use sweetalert to get custom status, get an selection type too
                 const { value: formValues } = await Swal.fire({
                   //   title: "<h3 class='swal2-title' style='color:white'>" + "Custom Status" + "</h3>",
@@ -1008,8 +1475,18 @@
                   },
                   background: "#292b30",
                   html:
-                    '<input id="textStatus" class="customStatusInput" placeholder="Support has arrived!">' +
-                    '<select id="status" class="customStatusSelect"><option value="online">Online</option><option value="idle">Idle</option><option value="dnd">Do Not Disturb</option><option value="invisible">Invisible</option></select>',
+                    '<input id="textStatus" class="customStatusInput" value="' +
+                    alertInfo.custom +
+                    '" placeholder="Support has arrived!">' +
+                    '<select id="status" class="customStatusSelect"><option value="online" ' +
+                    alertInfo.online +
+                    '>Online</option><option value="idle" ' +
+                    alertInfo.idle +
+                    '>Idle</option><option value="dnd" ' +
+                    alertInfo.dnd +
+                    '>Do Not Disturb</option><option value="invisible" ' +
+                    alertInfo.invisible +
+                    ">Invisible</option></select>",
                   focusConfirm: false,
                   preConfirm: () => {
                     return [
@@ -1030,6 +1507,7 @@
                     token: firebase?.auth()?.currentUser?.xa,
                   });
                 }
+                alertInfo = null;
               });
             document
               .getElementById("dropdown-content")
@@ -1042,6 +1520,18 @@
               .getElementById("statusChange")
               .addEventListener("mouseleave", function () {
                 document.getElementById("statusChange").style.display = "none";
+              });
+
+            document
+              .getElementById("coverbg")
+              .addEventListener("click", function () {
+                for (let i of document.getElementsByName("profile-view")) {
+                  console.log(i, " removed");
+                  i.remove();
+                }
+                document.getElementById("coverbg").style.opacity = "0";
+                document.getElementById("coverbg").style.visibility = "hidden";
+                //opacity
               });
           }
         })();
@@ -1112,163 +1602,19 @@
         />
       </div>
       <div id="account">
-        <div
-          id="profile-view"
-          name="profile-view"
-          style="
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 500px;
-            background-color: #292b30;
-            border-radius: 8px;
-            overflow: hidden;
-            z-index: 100000;
-            height: auto;
-            transition: visibility 0s, opacity 0.125s linear;
-            visibility: hidden;
-            opacity: 0;
-          "
-        >
+        <div class="dropdown" style="position: relative">
           <div
             style="
-              border-top-left-radius: 8px;
-              border-top-right-radius: 8px;
-              position: relative;
+              background-color: #202225;
+              position: fixed;
+              top: 0px;
+              left: 0;
+              width: 70px;
+              height: 100%;
+              z-index: 1;
             "
-          >
-            <img
-              src="https://i.imgur.com/epCPAX1.png"
-              style="
-                /*! position: absolute; */
-                width: 100%;
-                height: 130px;
-                border-radius: inherit;
-              "
-            />
-            <div name="pfp">
-              <div
-                style="
-                  z-index: 10;
-                  position: absolute;
-                  height: 30px;
-                  left: 89px;
-                  bottom: -38px;
-                  width: 30px;
-                  background-color: #292b30;
-                  border-radius: 10vh;
-                "
-              ></div>
-              <img
-                src="https://lh3.googleusercontent.com/a-/AOh14GiiPFvmon8K1bxsCLiWIGMnUFVFnGD6FbD4ocLB=s96-c"
-                style="
-                  border-radius: 10vh;
-                  top: 70px;
-                  left: 20px;
-                  position: absolute;
-                  border: 8px #292b30 solid;
-                "
-              /><img
-                src="/webchat-imgs/status_dnd.svg"
-                style="
-                  z-index: 10;
-                  position: absolute;
-                  height: 35px;
-                  left: 75px;
-                  top: 100%;
-                "
-              />
-            </div>
-            <div
-              id="badges"
-              style="
-                /*! background-color: #ff0000; */
-                position: absolute;
-                height: 30px;
-                width: calc(100% - 150px);
-                left: 133px; /*! margin-top: 5px; */
-                max-height: 30px;
-                max-width: calc(100% - 150px);
-              "
-            >
-              <img style="height: inherit" src="/webchat-imgs/CAD.png" /><img
-                style="height: inherit"
-                src="/webchat-imgs/AS.svg"
-              />
-            </div>
-          </div>
-          <p
-            style="
-              color: white;
-              z-index: 4;
-              position: relative;
-              top: 30px;
-              left: 20px;
-              font-weight: bold;
-              font-size: 18px;
-            "
-          >
-            InimicalPart
-          </p>
-          <p
-            style="
-              position: relative;
-              top: -13px;
-              left: 140px;
-              z-index: 4;
-              color: #959595;
-            "
-          >
-            (inimi-authdev)
-          </p>
-          <p
-            style="
-              position: relative;
-              top: -30px;
-              color: #9a9a9a;
-              left: 20px; /*! height: auto; */
-            "
-          >
-            Developer at Authworria
-          </p>
-          <p style="left: 20px; position: relative; color: #949494; top: -30px">
-            About Me
-          </p>
-          <div
-            name="aboutme"
-            style="
-              position: relative;
-              width: calc(100% - 40px);
-              height: auto; /*! background-color: #232529; */ /*! top: 30px; */ /*! margin-top: 30px; */
-              margin-left: 20px;
-              margin-right: 20px;
-              border-radius: 8px;
-              top: -45px;
-            "
-          >
-            <p
-              style="
-                color: #ccc; /*! left: 5px; */
-                position: inherit;
-                font-size: 14px;
-                top: 5px;
-              "
-            >
-              I am a developer of the website Authworria.com<br /><br />Programmer
-              &amp; Developer<br />
-              Support me or my work at
-              <a name="aboutmelink" href="#"
-                >https://www.buymeacoffee.com/inimicalpart</a
-              ><br />
-              Email: me@inimicalpart.com<br />
-              Twitter: @InimicalPart
-            </p>
-          </div>
-        </div>
-
-        <div class="dropdown">
+          ></div>
+          <div id="server-div"></div>
           <div id="friend-list"></div>
           <div id="serverline"></div>
           <div id="profileSection">
@@ -1279,7 +1625,7 @@
             <div id="profile-username"></div>
             <p
               id="profile-status"
-              style="top: 20px; left: 60px"
+              style="top: 20px; left: 130px"
               class="user-status"
             ></p>
           </div>
@@ -1325,12 +1671,13 @@
       #pfp {
         position: fixed;
         bottom: 10px;
-        left: 10px;
+        left: 80px;
         border-radius: 50%;
         width: 40px;
         height: 40px;
         /* border: 2px solid #000;*/
       }
+
       img {
         /*no select*/
         -webkit-touch-callout: none;
@@ -1451,7 +1798,7 @@
 
       #username {
         color: #dddddd;
-        left: 60px;
+        left: 130px;
         position: fixed;
         margin-top: 10px;
         font-size: 15px;
@@ -1459,7 +1806,7 @@
 
       #dropdown-content {
         display: none;
-        position: absolute;
+        position: fixed;
         background-color: #1a202c;
         min-width: 160px;
         box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
@@ -1467,7 +1814,7 @@
         border-radius: 5px;
         border-top-width: 10px;
         bottom: 60px;
-        left: 10px;
+        left: 80px;
       }
 
       #dropdown-content a {
@@ -1485,10 +1832,10 @@
       #friend-list {
         position: fixed;
         background-color: #292b30;
-        top: 65px;
-        left: 0;
-        width: 302px;
-        height: 825px;
+        top: 63px;
+        left: 70px;
+        width: 301px;
+        height: 100%;
         overflow-y: scroll;
         overflow-x: hidden;
         -ms-overflow-style: none;
@@ -1507,7 +1854,7 @@
         align-content: center;
         align-items: center;
         display: flex;
-        padding-left: 10px;
+        padding-left: 15px;
         /* position: absolute; */
       }
 
@@ -1542,11 +1889,19 @@
         color: gray;
         white-space: nowrap;
       }
-
+      #server-div {
+        position: absolute;
+        background-color: #2f3136;
+        top: -10px;
+        left: 60px;
+        width: 303px;
+        height: 64px;
+      }
       #serverline {
-        position: fixed;
-        top: 62px;
-        width: 300px;
+        position: absolute;
+        top: 54px;
+        width: 304px;
+        left: 60px;
         height: 1px;
         background-color: #28292c;
       }
@@ -1554,7 +1909,7 @@
       #userstatuspfp {
         bottom: 10px;
         position: fixed;
-        left: 30px;
+        left: 100px;
         z-index: 2;
       }
 
@@ -1565,7 +1920,7 @@
         height: 12px;
         position: fixed;
         bottom: 10px;
-        left: 36px;
+        left: 106px;
         z-index: 1;
         border-radius: 10vh;
       }
@@ -1608,7 +1963,7 @@
 
       #statusChange {
         display: none;
-        position: absolute;
+        position: fixed;
         background-color: #1a202c;
         min-width: 160px;
         box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
@@ -1616,7 +1971,7 @@
         border-radius: 5px;
         border-top-width: 10px;
         bottom: 60px;
-        left: 10px;
+        left: 80px;
       }
 
       #statusChange a {
@@ -1648,7 +2003,7 @@
         width: 90%;
         bottom: 0;
         /* left: 0; */
-        left: 50%;
+        left: calc(50% + 35px);
         right: 25%;
         margin-left: -45%;
         margin-bottom: 10px;
@@ -1660,7 +2015,7 @@
 
         top: 0;
         width: 100%;
-        left: 18.9rem;
+        left: calc(18.9rem + 70px);
 
         height: calc(100% - 52px);
       }
@@ -1685,8 +2040,35 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        margin-right: 10px;
-        margin-top: 5px;
+        justify-content: center;
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        margin: 5px;
+        margin-right: 13px;
+      }
+
+      #messageList li .timebox {
+        color: transparent;
+        /* make it so the user is unable to copy */
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        user-select: none;
+      }
+
+      #messageList li:hover {
+        background: #32353b;
+      }
+
+      /* when li is hovered over .timebox should turn white */
+
+      #messageList li:hover .timebox {
+        color: #524f54;
+      }
+
+      #aftermsg {
+        margin: 0px;
       }
 
       #messageList li #usrname {
@@ -1708,10 +2090,10 @@
       #channelHeader {
         position: fixed;
         display: flex;
-        top: 0;
+        top: -10px;
         width: 100%;
-        left: 18.9rem;
-        height: 52px;
+        left: calc(18.3rem + 70px);
+        height: 62px;
         background-color: #36393f;
         color: white;
         font-size: 1.2rem;

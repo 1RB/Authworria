@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // get code from url params
+      var code = new URLSearchParams(window.location.search).get("code");
+      if (code) {
+        location.href =
+          window.location.protocol +
+          "//" +
+          window.location.host +
+          "/confirminvite?code=" +
+          code;
+      } else {
+        location.href = window.location.protocol + "//" + window.location.host;
+      }
+    </script>
+  </body>
+</html>
