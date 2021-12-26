@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+<div id="panel-left" class="panel p-left"></div>
+<div id="panel-right" class="panel p-right"></div>
+    <style>
+        .panel {
+            background-color: red;
+            height:100%;
+            width: 300px;
+            top:0px;
+            position:fixed;
+        }
+        .p-left{
+            transition: left 2s ease;
+            left:0px;
+        }
+        .p-right{
+            transition: right 2s ease;
+            right:0px;
+        }
+        /*.hide on .p-left*/
+        .p-left.hide{
+            left:-300px;
+        }
+        /*.hide on .p-right*/
+        .p-right.hide{
+            right:-300px;
+        }
+    </style>
+  </body>
+</html>

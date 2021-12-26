@@ -1,23 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+    <head>
+        <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Cache-Control"
       content="no-cache, no-store, must-revalidate"
-    />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+      />
+      <meta http-equiv="Pragma" content="no-cache" />
+      <meta http-equiv="Expires" content="0" />
     <script
       src="https://kit.fontawesome.com/1788c719dd.js"
       crossorigin="anonymous"
-    ></script>
+      ></script>
+      <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+    <script type="module" src="js/imgtob64.js"></script>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
@@ -49,6 +61,10 @@
       integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
       crossorigin="anonymous"
     ></script>
+    <script src="js/app.js"></script>
+    <script>
+      document.addEventListener("deviceready", OneSignalInit, false);
+    </script>
     <!-- type="module" -->
     <script>
       let socket = null;
@@ -56,11 +72,28 @@
       let resetUponUpdate = false;
       let pendingMessages = [];
       let sendNotif = null;
+      let eHS = null;
+      let aS = null;
+      let smth = {};
+      let known = {
+        users: {},
+        servers: {},
+      };
     </script>
     <script>
       //on window load
       window.onload = () => {
         (async () => {
+          let sS = null;
+          let inHome = false;
+          smth.getCanvasFontSize = getCanvasFontSize;
+          smth.getCssStyle = getCssStyle;
+          smth.customgetCssStyle = customgetCssStyle;
+          smth.getCanvasFontSize = getCanvasFontSize;
+          smth.getTextWidth = getTextWidth;
+
+          eHS = exithomeScreen;
+          aS = addServer;
           sendNotif = sendNotificaiton;
           let currentUser = {};
           const badgeResolver = {
@@ -128,13 +161,23 @@
                 });
               }
             }
+            if (document.getElementsByName("server-menu")) {
+              // remove all user-menu's when clicked outside
+              if (!e.target.closest("[name=server-menu]")) {
+                document.getElementsByName("server-menu").forEach((el) => {
+                  el.remove();
+                });
+              }
+            }
           });
           let amountOfFriends = 0;
+          let amountOfServers = 0;
+
           // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.2.0/firebase-analytics.js";
 
           const firebaseConfig = {
             apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
-            authDomain: "authworria.firebaseapp.com",
+            authDomain: "authworria.com",
             databaseURL:
               "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "authworria",
@@ -143,10 +186,192 @@
             appId: "1:635623599897:web:0ee18f2824aa3b764e5f88",
             measurementId: "G-P84R1SCWJB",
           };
+          async function addServer(data) {
+            known.servers[data.serverID] = data;
+            amountOfServers++;
+            let server = document.createElement("div");
+            server.id = "server-" + known.servers[data.serverID].serverID;
+            server.style.borderRadius = "10vh";
+            server.style.display = "flex";
+            server.style.justifyContent = "center";
+            server.style.width = "100%";
+            server.style.marginBottom = "10px";
+            server.style.height = "100%";
+            server.style.alignItems = "center";
+            let serverImg = document.createElement("img");
+            serverImg.style.width = "48px";
+            serverImg.style.height = "48px";
+            serverImg.style.borderRadius = "10vh";
+            serverImg.style.transition = "border-radius 0.125s, ease 0.125s";
+            serverImg.id =
+              "server-img-" + known.servers[data.serverID].serverID;
+            serverImg.src = known.servers[data.serverID].serverPicture;
+            let serverSidebar = document.createElement("div");
+            serverSidebar.style.width = "4px";
+            serverSidebar.style.height = "4px";
+            serverSidebar.style.backgroundColor = "white";
+            serverSidebar.style.left = "2px";
+            serverSidebar.style.position = "absolute";
+            serverSidebar.style.borderRadius = "10vh";
+            serverSidebar.style.transition = "height 0.125s, ease 0.125s";
+            serverSidebar.id =
+              "server-sidebar-" + known.servers[data.serverID].serverID;
+            server.addEventListener("contextmenu", (e) => {
+              e.preventDefault();
+              /*
+
+    <div id="server-menu">
+      <ul id="menu-options">
+        <li id="menu-option">a</li>
+        <li id="menu-option">b</li>
+        <li id="menu-option">c</li>
+        <li id="menu-option">d</li>
+      </ul>
+    </div>
+
+        <style>
+      #server-menu {
+        width: 120px;
+        box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+      #menu-options {
+        list-style: none;
+        padding: 10px 0;
+      }
+      #menu-option {
+        font-weight: 500;
+        font-size: 14px;
+        padding: 10px 40px 10px 20px;
+        cursor: pointer;
+      }
+      #menu-option:hover {
+        background: rgba(0, 0, 0, 0.2);
+      }
+    </style>
+                
+                */
+              document.getElementsByName("server-menu").forEach((el) => {
+                el.remove();
+              });
+              let serverMenu = document.createElement("div");
+              serverMenu.id = "server-menu";
+              serverMenu.setAttribute("name", "server-menu");
+              serverMenu.style.left = e.clientX + "px";
+              serverMenu.style.top = e.clientY + "px";
+              serverMenu.style.position = "relative";
+              serverMenu.style.width = "120px";
+              serverMenu.style.backgroundColor = "#FFF";
+              serverMenu.style.boxShadow = "0 4px 5px 3px rgba(0, 0, 0, 0.2)";
+              serverMenu.style.zIndex = "9999";
+              let menuOptions = document.createElement("ul");
+              menuOptions.id = "menu-options";
+              menuOptions.style.listStyle = "none";
+              menuOptions.style.padding = "10px 0";
+              let menuOption1 = document.createElement("li");
+              menuOption1.id = "menu-option";
+              menuOption1.innerHTML = "a";
+              menuOption1.style.fontWeight = "500";
+              menuOption1.style.fontSize = "14px";
+              menuOption1.style.padding = "10px 0px 10px 0px";
+              menuOption1.style.cursor = "pointer";
+              menuOption1.style.textAlign = "center";
+              menuOption1.onmouseover = () => {
+                menuOption1.style.background = "rgba(0, 0, 0, 0.2)";
+              };
+              menuOption1.onmouseout = () => {
+                menuOption1.style.background = "";
+              };
+              let menuOption2 = document.createElement("li");
+              menuOption2.id = "menu-option";
+              menuOption2.innerHTML = "b";
+              menuOption2.style.fontWeight = "500";
+              menuOption2.style.fontSize = "14px";
+              menuOption2.style.padding = "10px 0px 10px 0px";
+              menuOption2.style.cursor = "pointer";
+              menuOption2.style.textAlign = "center";
+              menuOption2.onmouseover = () => {
+                menuOption2.style.background = "rgba(0, 0, 0, 0.2)";
+              };
+              menuOption2.onmouseout = () => {
+                menuOption2.style.background = "";
+              };
+              let menuOption3 = document.createElement("li");
+              menuOption3.id = "menu-option";
+              menuOption3.innerHTML = "c";
+              menuOption3.style.fontWeight = "500";
+              menuOption3.style.fontSize = "14px";
+              menuOption3.style.padding = "10px 0px 10px 0px";
+              menuOption3.style.cursor = "pointer";
+              menuOption3.style.textAlign = "center";
+              menuOption3.onmouseover = () => {
+                menuOption3.style.background = "rgba(0, 0, 0, 0.2)";
+              };
+              menuOption3.onmouseout = () => {
+                menuOption3.style.background = "";
+              };
+              let menuOption4 = document.createElement("li");
+              menuOption4.id = "menu-option";
+              menuOption4.innerHTML = "d";
+              menuOption4.style.fontWeight = "500";
+              menuOption4.style.fontSize = "14px";
+              menuOption4.style.padding = "10px 0px 10px 0px";
+              menuOption4.style.cursor = "pointer";
+              menuOption4.style.textAlign = "center";
+              menuOption4.onmouseover = () => {
+                menuOption4.style.background = "rgba(0, 0, 0, 0.2)";
+              };
+              menuOption4.onmouseout = () => {
+                menuOption4.style.background = "";
+              };
+
+              menuOptions.appendChild(menuOption1);
+              menuOptions.appendChild(menuOption2);
+              menuOptions.appendChild(menuOption3);
+              menuOptions.appendChild(menuOption4);
+              serverMenu.appendChild(menuOptions);
+              document.body.appendChild(serverMenu);
+            });
+            server.appendChild(serverImg);
+            server.appendChild(serverSidebar);
+            document.getElementById("mainServers").appendChild(server);
+            $("#server-" + known.servers[data.serverID].serverID).hover(
+              function () {
+                $(this)
+                  .children(
+                    "#server-img-" + known.servers[data.serverID].serverID
+                  )
+                  .css("border-radius", "14px");
+                $(this)
+                  .children(
+                    "#server-sidebar-" + known.servers[data.serverID].serverID
+                  )
+                  .css("height", "30px");
+                $(this).css("cursor", "pointer");
+              },
+              function () {
+                $(this)
+                  .children(
+                    "#server-img-" + known.servers[data.serverID].serverID
+                  )
+                  .css("border-radius", "10vh");
+                $(this)
+                  .children(
+                    "#server-sidebar-" + known.servers[data.serverID].serverID
+                  )
+                  .css("height", "4px");
+                $(this).css("cursor", "default");
+              }
+            );
+            $("#server-" + known.servers[data.serverID].serverID).click(() => {
+              sS(known.servers[data.serverID]);
+            });
+          }
           async function addUser(data) {
+            known.users[data.uid] = data;
             amountOfFriends++;
             let userdiv = document.createElement("div");
-            userdiv.id = "user-" + data.uid;
+            userdiv.id = "user-" + known.users[data.uid].uid;
             userdiv.classList.add("user");
             userdiv.classList.add("changeonhover");
             userdiv.addEventListener(
@@ -184,7 +409,7 @@
                 //position absolute
                 div.style.position = "relative";
 
-                div = await generateUserMenu(div, data);
+                div = await generateUserMenu(div, known.users[data.uid]);
 
                 //attach the div to the body
                 document.body.appendChild(div);
@@ -194,45 +419,49 @@
               false
             );
             let friendpfp = document.createElement("div");
-            friendpfp.id = "friend-pfp-" + data.uid;
+            friendpfp.id = "friend-pfp-" + known.users[data.uid].uid;
             friendpfp.classList.add("friend-pfp");
             let friendpfpimg = document.createElement("img");
-            friendpfpimg.src = data.avatar;
+            friendpfpimg.referrerPolicy = "no-referrer";
+            friendpfpimg.src = known.users[data.uid].avatar;
             friendpfpimg.classList.add("pfp-pic");
-            friendpfpimg.id = "friendpfp-" + data.uid;
+            friendpfpimg.id = "friendpfp-" + known.users[data.uid].uid;
             let friendtransparentOutline = document.createElement("div");
             friendtransparentOutline.id =
-              "friend-transparentOutline-" + data.uid;
+              "friend-transparentOutline-" + known.users[data.uid].uid;
             friendtransparentOutline.classList.add("transparentOutline");
             friendtransparentOutline.style.display = "block";
             friendtransparentOutline.style.position = "absolute";
             friendtransparentOutline.style.top = "27px";
             friendtransparentOutline.style.left = "28px";
             let friendstatus = document.createElement("img");
-            friendstatus.id = "friend-statusicon-" + data.uid;
-            friendstatus.src = data.statusIcon;
+            friendstatus.id = "friend-statusicon-" + known.users[data.uid].uid;
+            friendstatus.src = known.users[data.uid].statusIcon;
             friendstatus.classList.add("status-pfp");
             friendstatus.style.position = "absolute";
             friendstatus.style.top = "24px";
             friendstatus.style.left = "22px";
             let friendname = document.createElement("p");
-            friendname.id = "friend-name-" + data.uid;
+            friendname.id = "friend-name-" + known.users[data.uid].uid;
             friendname.classList.add("friend-name");
-            friendname.style.top = -64 + 55 * amountOfFriends + "px";
+            friendname.style.top = "-9px";
             friendname.style.left = "65px";
-            friendname.innerHTML = data.name; // change to username later
+            friendname.innerHTML = known.users[data.uid].name; // change to username later
             let friendstatusp = document.createElement("p");
-            friendstatusp.id = "friend-status-" + data.uid;
+            friendstatusp.id = "friend-status-" + known.users[data.uid].uid;
             friendstatusp.classList.add("friend-status");
-            friendstatusp.style.top = -42 + 55 * amountOfFriends + "px";
+            friendstatusp.style.top = "13px";
             friendstatusp.style.left = "65px";
             // sus
             if (
-              getTextWidth(data.status, getCanvasFontSize(friendstatusp)) >
+              getTextWidth(
+                known.users[data.uid].status,
+                getCanvasFontSize(friendstatusp)
+              ) >
               245 - 9
             ) {
               // if the status is too long, shorten it until its less than 200 pixels minus the size of "..." (9 px) and add ...
-              let status = data.status;
+              let status = known.users[data.uid].status;
               while (
                 getTextWidth(status, getCanvasFontSize(friendstatusp)) >
                 245 - 9
@@ -241,7 +470,7 @@
               }
               friendstatusp.innerText = status + "...";
             } else {
-              friendstatusp.innerText = data.status;
+              friendstatusp.innerText = known.users[data.uid].status;
             }
             friendpfp.appendChild(friendpfpimg);
             friendpfp.appendChild(friendtransparentOutline);
@@ -262,7 +491,7 @@
           $(window).unload(function () {
             socket.disconnect(); // Disconnects the user when the page is being closed
           });
-          function launchSocket() {
+          async function launchSocket() {
             socket.on("connect", async function () {
               console.log("Connected, my socket id: %s", socket.id);
               mySocketId = socket.id;
@@ -280,8 +509,15 @@
               // Remove the uid user from the friend list (element has id "user-<uid>")
               document.getElementById("user-" + data.uid).remove();
               amountOfFriends--;
-              // Update the friend list
+              // TODO: Update the friend list
               await updateFriendList();
+            });
+            socket.on("changeServerImageRes", function (data) {
+              if (data.err) return;
+              if (data.img) {
+                document.getElementById("server-img-" + data.server).src =
+                  data.img;
+              }
             });
             socket.on("userIdentRes", function (data) {
               // Executes when the server responds to the client indentification request
@@ -300,6 +536,9 @@
               socket.emit("getKnown", {
                 token: firebase?.auth()?.currentUser?.xa,
               });
+              socket.emit("getKnownServers", {
+                token: firebase?.auth()?.currentUser?.xa,
+              });
             });
             function checkUpdateStart() {
               socket.emit("lastUpdate");
@@ -309,6 +548,33 @@
                 }
               }, 30000);
             }
+            socket.on("getMessagesRes", async function (data) {
+              if (data.err) return console.log(data.err);
+              addMessages(data.messages);
+            });
+            async function addMessages(messages) {
+              let messageList = document.getElementById("messageList");
+              // sort messages by time, the time is located in each element of the array which is an object.
+              messages.sort((a, b) => {
+                return a.time - b.time;
+              });
+              for (let message of Object.keys(messages)) {
+                let msgObject = messages[message];
+              }
+            }
+            socket.on("getKnownServersRes", function (data) {
+              if (data.err) return console.log(err);
+              console.log("getKnownServers sent. Response: ", data);
+              if (data.servers.length > 0) {
+                socket.emit("getBulk", {
+                  token: firebase.auth().currentUser.xa,
+                  ids: data.servers,
+                  type: "servers",
+                });
+              } else {
+                console.log("No servers found");
+              }
+            });
             socket.on("lastUpdateRes", function (data) {
               if (!serverLastUpdate) {
                 serverLastUpdate = data.lastUpdateTime;
@@ -486,20 +752,79 @@
               }
             });
             socket.on("getInfoRes", function (data) {
-              // check if uid matches our uid, if so return
+              //   // check if uid matches our uid, if so return
+              //   if (data.err) {
+              //     console.log("Error:", data.err);
+              //     return;
+              //   }
+              //   if (data.uid == currentUser.uid) return;
+              //   // if not, check if uid is in friend list, if so return
+              //   if (document.getElementById("friend-pfp-" + data.uid))
+              //     return console.log(
+              //       "User: " + data.uid + " is already in friend list"
+              //     );
+              //   // add user to friend list using addUser function with the data variable passed in
+              //   addUser(data);
+              //   console.log("User added:", data.uid + " (" + data.name + ")");
+            });
+            socket.on("getBulkRes", function (data) {
               if (data.err) {
                 console.log("Error:", data.err);
                 return;
               }
-              if (data.uid == currentUser.uid) return;
-              // if not, check if uid is in friend list, if so return
-              if (document.getElementById("friend-pfp-" + data.uid))
-                return console.log(
-                  "User: " + data.uid + " is already in friend list"
-                );
-              // add user to friend list using addUser function with the data variable passed in
-              addUser(data);
-              console.log("User added:", data.uid + " (" + data.name + ")");
+              if (data.type == "users") {
+                for (let userData of data?.results) {
+                  if (userData.err === "User does not exist") {
+                    console.log(
+                      "According to SERVER, user " +
+                        userData.uid +
+                        " does not exist"
+                    );
+                    continue;
+                  }
+                  if (userData.uid == currentUser.uid) continue;
+                  // if not, check if uid is in friend list, if so return
+                  if (document.getElementById("friend-pfp-" + userData.uid)) {
+                    console.log(
+                      "User: " + userData.uid + " is already in friend list"
+                    );
+                    continue;
+                  }
+                  addUser(userData);
+                  console.log(
+                    "User added:",
+                    userData.uid + " (" + userData.name + ")"
+                  );
+                }
+              } else if (data.type == "servers") {
+                for (let serverData of data?.results) {
+                  if (serverData.err === "Server does not exist") {
+                    console.log(
+                      "According to SERVER, server " +
+                        serverData.serverID +
+                        " does not exist"
+                    );
+                    continue;
+                  }
+                  // if not, check if uid is in friend list, if so return
+                  if (
+                    document.getElementById("server-" + serverData.serverID)
+                  ) {
+                    console.log(
+                      "Server: " +
+                        serverData.serverID +
+                        " is already in server list"
+                    );
+                    continue;
+                  }
+                  addServer(serverData);
+                  console.log(
+                    "Server added:",
+                    serverData.serverID + " (" + serverData.name + ")"
+                  );
+                }
+              } else if (data.type == "codes") {
+              }
             });
             socket.on("getKnownRes", async function (data) {
               // Executes when the server requests the list of known users
@@ -509,13 +834,12 @@
                 console.log("Error:", data.err);
               } else {
                 let known = data.knownUsers.sort();
-                console.log("Known users:", known);
-                for (let i = 0; i < known.length; i++) {
-                  await socket.emit("getInfo", {
-                    uid: known[i],
-                    token: firebase?.auth()?.currentUser?.xa,
-                  });
-                }
+                console.log("Known users:", known, ". Requesting info...");
+                socket.emit("getBulk", {
+                  token: firebase?.auth()?.currentUser?.xa,
+                  type: "users",
+                  ids: known,
+                });
               }
             });
             socket.on("updateAbtMeRes", function (data) {
@@ -532,80 +856,85 @@
               // Executes when the server responds to a client request to send a message
               // Returns: {err: "<errormsg>"} if fails else returns {success: true, message: <message>, sender: <sender>, senderUID: <senders UID>, senderImg: <senders pfp>, time: <time>}
               if (data.err) return console.log(data.err);
-              document
-                .getElementById("temp-msg-" + data.elementcode)
-                .removeAttribute("class");
-              let lastMessage = document.getElementsByName("latest-msg")[0];
-              for (let i of document.getElementsByName("latest-msg")) {
-                i.removeAttribute("name");
-              }
-              document
-                .getElementById("temp-msg-" + data.elementcode)
-                .setAttribute("name", "latest-msg");
-              if (
-                lastMessage &&
-                lastMessage?.dataset?.sender === data?.senderUID
-              ) {
-                // data.time
-                const time = new Date(data.time);
-                const timeString = time.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                });
+              try {
+                console.log("Message sent:", data);
+                document
+                  .getElementById("temp-msg-" + data.elementcode)
+                  .removeAttribute("class");
+                let lastMessage = document.getElementsByName("latest-msg")[0];
+                for (let i of document.getElementsByName("latest-msg")) {
+                  i.removeAttribute("name");
+                }
+                document
+                  .getElementById("temp-msg-" + data.elementcode)
+                  .setAttribute("name", "latest-msg");
+                if (
+                  lastMessage &&
+                  lastMessage?.dataset?.sender === data?.senderUID
+                ) {
+                  // data.time
+                  const time = new Date(data.time);
+                  const timeString = time.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
 
-                // last message is from current user
+                  // last message is from current user
+                  document.getElementById(
+                    "temp-msg-" + data.elementcode
+                  ).innerHTML =
+                    "<div class='timebox' id='sender-pfp-" +
+                    data.messageID +
+                    "'>" +
+                    timeString +
+                    "</div>" +
+                    "<p id='aftermsg'>" +
+                    data.message +
+                    "</p>";
+                  // css for sender pfp
+                  document.getElementById(
+                    "sender-pfp-" + data.messageID
+                  ).style.cssText =
+                    "border-radius: 50%; " +
+                    "display: inline-flex; " +
+                    "align-items: center; " +
+                    "font-size: 10px; " +
+                    "text-align: center;" +
+                    "justify-content: center; " +
+                    "margin: 3.5px;" +
+                    "min-width: fit-content;" +
+                    "margin-right: 10px;";
+
+                  // if an element has the attribute latest-msg also add the attribute no-pfp-msg
+                } else {
+                  // last message is from another user or no last message
+                  document.getElementById(
+                    "temp-msg-" + data.elementcode
+                  ).innerHTML =
+                    "<img id='sender-pfp-" +
+                    data.messageID +
+                    "'>" +
+                    "<p id='usrname'><u><b>" +
+                    data.sender +
+                    "</b></u>" +
+                    "<br> " +
+                    data.message +
+                    "</p>";
+                  document.getElementById("sender-pfp-" + data.messageID).src =
+                    data.senderImg;
+                }
+
                 document.getElementById(
                   "temp-msg-" + data.elementcode
-                ).innerHTML =
-                  "<div class='timebox' id='sender-pfp-" +
-                  data.messageID +
-                  "'>" +
-                  timeString +
-                  "</div>" +
-                  "<p id='aftermsg'>" +
-                  data.message +
-                  "</p>";
-                // css for sender pfp
-                document.getElementById(
-                  "sender-pfp-" + data.messageID
-                ).style.cssText =
-                  "border-radius: 50%; " +
-                  "display: inline-flex; " +
-                  "align-items: center; " +
-                  "font-size: 10px; " +
-                  "text-align: center;" +
-                  "justify-content: center; " +
-                  "margin: 3.5px;" +
-                  "min-width: fit-content;" +
-                  "margin-right: 10px;";
-
-                // if an element has the attribute latest-msg also add the attribute no-pfp-msg
-              } else {
-                // last message is from another user or no last message
+                ).dataset.time = data.time;
                 document.getElementById(
                   "temp-msg-" + data.elementcode
-                ).innerHTML =
-                  "<img id='sender-pfp-" +
-                  data.messageID +
-                  "'>" +
-                  "<p id='usrname'><u><b>" +
-                  data.sender +
-                  "</b></u>" +
-                  "<br> " +
-                  data.message +
-                  "</p>";
-                document.getElementById("sender-pfp-" + data.messageID).src =
-                  data.senderImg;
+                ).dataset.sender = data.senderUID;
+                document.getElementById("temp-msg-" + data.elementcode).id =
+                  "message-" + data.messageID;
+              } catch (e) {
+                console.error("Error in sendMessageRes:", e);
               }
-
-              document.getElementById(
-                "temp-msg-" + data.elementcode
-              ).dataset.time = data.time;
-              document.getElementById(
-                "temp-msg-" + data.elementcode
-              ).dataset.sender = data.senderUID;
-              document.getElementById("temp-msg-" + data.elementcode).id =
-                "message-" + data.messageID;
             });
             socket.on("receiveMessage", function (data) {
               // Executes when the client receives a message
@@ -675,70 +1004,15 @@
               // User is signed in.
               firebase.auth().currentUser.getIdToken(true); //make sure token is refreshed
               socket = await io("https://ws.inimicalpart.com:4242"); // ws.inimicalpart.com:4242
-              socket.on("connect_error", (err) => {
-                console.log("failed to connect to server");
-                failedConnections++;
-                if (failedConnections == 3) {
-                  console.log("failed to connect to server 3 times");
+              // prettier-ignore
+              socket.on("connect_error",e=>{console.log("failed to connect to server"),failedConnections++,3==failedConnections&&(console.log("failed to connect to server 3 times"),Swal.fire({title:"Failed to connect to server",text:"The server hasn't responded in 3 retries. Waiting until connection is made...",icon:"error",background:"#292b30",customClass:{title:"whiteTextTitle",htmlContainer:"grayTextTitle"},showCloseButton:!1,showCancelButton:!1,showConfirmButton:!1,allowOutsideClick:!1,allowEscapeKey:!1}),socket.on("connect",()=>{console.log("connected to server"),failedConnections=0,Swal.close()}))}),socket.on("connect_failed",e=>{console.log("failed to connect to server"),failedConnections++,3==failedConnections&&(console.log("failed to connect to server 3 times"),Swal.fire({title:"Failed to connect to server",text:"The server hasn't responded in 3 retries. Waiting until connection is made...",icon:"error",background:"#292b30",customClass:{title:"whiteTextTitle",htmlContainer:"grayTextTitle"},showCloseButton:!1,showCancelButton:!1,showConfirmButton:!1,allowOutsideClick:!1,allowEscapeKey:!1}),socket.on("connect",()=>{console.log("connected to server"),failedConnections=0,Swal.close()}))});
 
-                  Swal.fire({
-                    title: "Failed to connect to server",
-                    text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
-                    icon: "error",
-                    //add a gradient to the ba background of dark colors
-                    background: "#292b30",
-                    customClass: {
-                      title: "whiteTextTitle",
-                      htmlContainer: "grayTextTitle",
-                    },
-                    showCloseButton: false,
-                    showCancelButton: false,
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                  });
-                  socket.on("connect", () => {
-                    console.log("connected to server");
-                    failedConnections = 0;
-                    Swal.close();
-                  });
-                }
-              });
-              socket.on("connect_failed", (err) => {
-                console.log("failed to connect to server");
-                failedConnections++;
-                if (failedConnections == 3) {
-                  console.log("failed to connect to server 3 times");
-
-                  Swal.fire({
-                    title: "Failed to connect to server",
-                    text: "The server hasn't responded in 3 retries. Waiting until connection is made...",
-                    icon: "error",
-                    //add a gradient to the ba background of dark colors
-                    background: "#292b30",
-                    customClass: {
-                      title: "whiteTextTitle",
-                      htmlContainer: "grayTextTitle",
-                    },
-                    showCloseButton: false,
-                    showCancelButton: false,
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                  });
-                  socket.on("connect", () => {
-                    console.log("connected to server");
-                    failedConnections = 0;
-                    Swal.close();
-                  });
-                }
-              });
+              await showUserDetail(user);
+              await launchSocket();
+              await setupServers();
+              await continueSetup();
               document.getElementById("loading").style.display = "none";
               document.getElementById("app").style.display = "block";
-
-              showUserDetail(user);
-              launchSocket();
-              continueSetup();
             } else {
               // No user is signed in.
               window.location.href = "./login.html";
@@ -986,7 +1260,7 @@
               viewprofile.style.cursor = "";
             };
             viewprofile.onclick = async function () {
-                return alert("Under construction.") // TODO: remove this when finished
+              return alert("Under construction."); // TODO: remove this when finished
               document.getElementById("coverbg").style.visibility = "visible";
               document.getElementById("coverbg").style.opacity = "1";
               for (let i of document.getElementsByName("user-menu")) {
@@ -1019,239 +1293,33 @@
 
             return menudiv;
           }
-          async function generateProfile(data) {
-            console.log("data", data);
-            //rewrite the following code in html using document.createElement()
-            /*
-      <div id="profile-view" style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);width: 600px;height: 500px;background-color: #292b30;border-radius: 8px;overflow: hidden;z-index: 100000;height: auto;"><div style="border-top-left-radius: 8px;border-top-right-radius: 8px;position: relative;">
-      <img src="https://i.imgur.com/epCPAX1.png" style="width: 100%;height: 130px;border-radius: inherit;">
-      <div name="pfp">
+          //prettier-ignore
+          async function generateProfile(e){console.log("data",e);let t=document.createElement("div");t.id="profile-view-"+e.uid,t.setAttribute("name","profile-view"),t.style.position="absolute",t.style.top="50%",t.style.left="50%",t.style.transform="translate(-50%, -50%)",t.style.width="600px",t.style.backgroundColor="#292b30",t.style.borderRadius="8px",t.style.overflow="hidden",t.style.zIndex="100000",t.style.visibility="hidden",t.style.opacity="0",t.style.transition="visibility 0s, opacity 0.125s linear",t.style.height="auto";let l=document.createElement("div");l.style.borderTopLeftRadius="8px",l.style.borderTopRightRadius="8px",l.style.position="relative";let i,s=document.createElement("div");s.id="profile-banner-container-"+e.uid,s.style.position="relative",s.style.height="130px",s.style.width="100%",s.style.borderRadius="inherit",e.banner?((i=document.createElement("img")).id="profile-banner-"+e.uid,i.src=e.banner,i.style.width="100%",i.style.height="130px",i.style.borderRadius="inherit"):((i=document.createElement("div")).style.width="100%",i.style.height="130px",i.style.borderRadius="inherit",i.style.backgroundColor="#000");let o=document.createElement("div");o.setAttribute("name","pfp");let n=document.createElement("div");n.style.zIndex="10",n.style.position="absolute",n.style.height="30px",n.style.left="89px",n.style.bottom="-38px",n.style.width="30px",n.style.backgroundColor="#292b30",n.style.borderRadius="10vh";let d=document.createElement("img");d.id="profile-pfp-"+e.uid,d.src=e.avatar,d.style.borderRadius="10vh",d.style.top="70px",d.style.left="20px",d.style.height="90px",d.style.width="90px",d.style.position="absolute",d.style.border="8px #292b30 solid";let a=document.createElement("img");a.src=e.statusIcon,a.id="profile-status-"+e.uid,a.style.zIndex="10",a.style.position="absolute",a.style.height="35px",a.style.left="75px",a.style.top="100%";let p=document.createElement("div");p.id="profile-badges-"+e.uid,p.style.position="absolute",p.style.height="30px",p.style.width="calc(100% - 150px)",p.style.left="133px",p.style.maxHeight="30px",p.style.maxWidth="calc(100% - 150px)",p.style.whiteSpace="nowrap",p.style.marginTop="5px";let r=e.badges||[];for(let e=0;e<r.length;e++){let t=r[e],l=badgeResolver[t],i=document.createElement("img");i.src=l.img,i.style.height="inherit",p.childElementCount<15&&p.appendChild(i)}let y=document.createElement("p");y.id="profile-name-"+e.uid,y.style.color="white",y.style.fontSize="18px",y.style.fontWeight="bold",y.style.position="relative",y.style.top="30px",y.style.left="20px",y.style.fontFamily="Poppins, sans-serif",y.innerHTML=e.name,console.log(parseFloat(getTextWidth(e.name,customgetCanvasFontSize(y)))+25+"px"),console.log(customgetCanvasFontSize(y));let u=document.createElement("p");u.id="profile-friendcode-"+e.uid,u.style.color="#959595",u.style.position="relative",u.style.top="-13px",console.log(e.name,y),u.style.left=parseFloat(getTextWidth(e.name,customgetCanvasFontSize(y)))+25+"px",console.log("("+e.friendCode+")"),u.innerHTML="("+e.friendCode+")";let c=document.createElement("p");if(c.id="profile-status-text-"+e.uid,c.style.position="relative",c.style.top="-30px",c.style.left="20px",c.style.color="#9a9a9a",getTextWidth(e.status,customgetCanvasFontSize(c))>531){let t=e.status,l=getTextWidth(t,customgetCanvasFontSize(c));for(;l>531;)t=t.substring(0,t.length-1),l=getTextWidth(t,customgetCanvasFontSize(c));c.innerHTML=t+"..."}else c.innerHTML=e.status;let h=null,m=null,x=null;return e.aboutMe&&((h=document.createElement("p")).id="profile-aboutme-txt-"+e.uid,h.style.position="relative",h.style.top="-30px",h.style.left="20px",h.style.color="#949494",h.innerHTML="About Me",(m=document.createElement("div")).id="profile-aboutme-div-"+e.uid,m.style.position="relative",m.style.top="-45px",m.setAttribute("name","aboutme"),m.style.width="calc(100% - 40px)",m.style.height="auto",m.style.marginLeft="20px",m.style.marginRight="20px",m.style.borderRadius="8px",(x=document.createElement("p")).id="profile-aboutme-"+e.uid,x.style.position="inherit",x.style.top="5px",x.style.fontSize="14px",x.style.color="#ccc",x.innerHTML=convertAbtMe(e.aboutMe)),t.appendChild(l),s.appendChild(i),l.appendChild(s),l.appendChild(o),o.appendChild(n),o.appendChild(d),o.appendChild(a),l.appendChild(p),t.appendChild(y),t.appendChild(u),t.appendChild(c),h&&m&&x&&(t.appendChild(h),t.appendChild(m),m.appendChild(x)),t}
+          async function setupServers() {
+            document
+              .getElementById("home-btn")
+              .addEventListener("click", function () {
+                if (!inHome) {
+                  $("#server-div").css(
+                    "height",
+                    parseInt($("#server-div").css("height").replace("px", "")) *
+                      3 +
+                      "px"
+                  );
+                  let removeHeight =
+                    ($("#server-div").css("height").replace("px", "") / 3) * 2;
+                  $("#friend-list").css("top", removeHeight + 63 + "px");
+                  $("#chat").css("visibility", "hidden");
+                  inHome = true;
+                }
+              });
+          }
+          function exithomeScreen() {
+            $("#server-div").removeAttr("style");
+            $("#friend-list").removeAttr("style");
+            $("#chat").css("visibility", "visible");
 
-        <div style="z-index: 10;position: absolute;height: 30px;left: 89px;bottom: -38px;width: 30px;background-color: #292b30;border-radius: 10vh;"></div><img src="https://lh3.googleusercontent.com/a-/AOh14GiiPFvmon8K1bxsCLiWIGMnUFVFnGD6FbD4ocLB=s96-c" style="border-radius: 10vh;top: 70px;left: 20px;position: absolute;border: 8px #292b30 solid;"><img src="/webchat-imgs/status_dnd.svg" style="z-index: 10;position: absolute;height: 35px;left: 75px;top: 100%;">
-        </div>
-        <div id="badges" style="position: absolute;height: 30px;width: calc(100% - 150px);left: 133px;max-height: 30px;max-width: calc(100% - 150px);"><img style="height: inherit;" src="/webchat-imgs/CAD.png"><img style="height: inherit;" src="/webchat-imgs/AS_WTTR.svg"></div></div><p style="color: white;z-index: 4;position: relative;top: 30px;left: 20px;font-weight: bold;font-size: 18px;">InimicalPart</p><p style="position: relative;top: -13px;left: 140px;z-index: 4;color: #959595;">(inimi-authdev)</p>
-        <p style="position: relative;top: -30px;color: #9a9a9a;left: 20px;">Developer at Authworria</p><p style="left: 20px;position: relative;color: #949494;top: -30px;">About Me</p><div name="aboutme" style="position: relative;width: calc(100% - 40px);height: auto;margin-left: 20px;margin-right: 20px;border-radius: 8px;top: -45px;"><p style="color: #ccc;position: inherit;font-size: 14px;top: 5px;">I am a developer of the website Authworria.com<br><br>Programmer &amp; Developer<br>
-        Support me or my work at <a name="aboutmelink" href="#">https://www.buymeacoffee.com/inimicalpart</a><br>
-        Email: me@inimicalpart.com<br>
-        Twitter: @InimicalPart</p></div></div>
-      */
-            let profile = document.createElement("div");
-            profile.id = "profile-view-" + data.uid;
-            profile.setAttribute("name", "profile-view");
-            profile.style.position = "absolute";
-            profile.style.top = "50%";
-            profile.style.left = "50%";
-            profile.style.transform = "translate(-50%, -50%)";
-            profile.style.width = "600px"; // set to auto later
-            profile.style.backgroundColor = "#292b30";
-            profile.style.borderRadius = "8px";
-            profile.style.overflow = "hidden";
-            profile.style.zIndex = "100000";
-            profile.style.visibility = "hidden";
-            profile.style.opacity = "0";
-            profile.style.transition = "visibility 0s, opacity 0.125s linear";
-            profile.style.height = "auto";
-            //create top part
-            let profiletop = document.createElement("div");
-            profiletop.style.borderTopLeftRadius = "8px";
-            profiletop.style.borderTopRightRadius = "8px";
-            profiletop.style.position = "relative";
-            //create banner
-            let bannercontainer = document.createElement("div");
-            bannercontainer.id = "profile-banner-container-" + data.uid;
-            bannercontainer.style.position = "relative";
-            bannercontainer.style.height = "130px";
-            bannercontainer.style.width = "100%";
-            bannercontainer.style.borderRadius = "inherit";
-
-            let banner;
-            if (data.banner) {
-              banner = document.createElement("img");
-              banner.id = "profile-banner-" + data.uid;
-              banner.src = data.banner;
-              banner.style.width = "100%";
-              banner.style.height = "130px";
-              banner.style.borderRadius = "inherit";
-            } else {
-              banner = document.createElement("div");
-              banner.style.width = "100%";
-              banner.style.height = "130px";
-              banner.style.borderRadius = "inherit";
-              banner.style.backgroundColor = "#000";
-            }
-            //create pfp container
-            let pfp = document.createElement("div");
-            pfp.setAttribute("name", "pfp");
-            //create outline for status
-            let outline = document.createElement("div");
-            outline.style.zIndex = "10";
-            outline.style.position = "absolute";
-            outline.style.height = "30px";
-            outline.style.left = "89px";
-            outline.style.bottom = "-38px";
-            outline.style.width = "30px";
-            outline.style.backgroundColor = "#292b30";
-            outline.style.borderRadius = "10vh";
-            //create pfp
-            let pfpimg = document.createElement("img");
-            pfpimg.id = "profile-pfp-" + data.uid;
-            pfpimg.src = data.avatar;
-            pfpimg.style.borderRadius = "10vh";
-            pfpimg.style.top = "70px";
-            pfpimg.style.left = "20px";
-            pfpimg.style.height = "90px";
-            pfpimg.style.width = "90px";
-            pfpimg.style.position = "absolute";
-            pfpimg.style.border = "8px #292b30 solid";
-            //create status container, the image of the status is data.statusIcon
-            let status = document.createElement("img");
-            status.src = data.statusIcon;
-            status.id = "profile-status-" + data.uid;
-            status.style.zIndex = "10";
-            status.style.position = "absolute";
-            status.style.height = "35px";
-            status.style.left = "75px";
-            status.style.top = "100%";
-            //create badges container
-            let badges = document.createElement("div");
-            badges.id = "profile-badges-" + data.uid;
-            badges.style.position = "absolute";
-            badges.style.height = "30px";
-            badges.style.width = "calc(100% - 150px)";
-            badges.style.left = "133px";
-            badges.style.maxHeight = "30px";
-            badges.style.maxWidth = "calc(100% - 150px)";
-            badges.style.whiteSpace = "nowrap";
-            badges.style.marginTop = "5px";
-            //create badges
-            let badgesimgs = data.badges || [];
-            // loop through all the badges and give it to the badgeResolver function that will return the location of the image which will be under badgeResolver(badge).img
-            for (let i = 0; i < badgesimgs.length; i++) {
-              let badge = badgesimgs[i];
-              let badgeimg = badgeResolver[badge];
-              let badgeimgdiv = document.createElement("img");
-              badgeimgdiv.src = badgeimg.img;
-              badgeimgdiv.style.height = "inherit";
-              if (badges.childElementCount < 15) {
-                badges.appendChild(badgeimgdiv);
-              }
-            }
-            //create name
-            let name = document.createElement("p");
-            name.id = "profile-name-" + data.uid;
-            name.style.color = "white";
-            name.style.fontSize = "18px";
-            name.style.fontWeight = "bold";
-            name.style.position = "relative";
-            name.style.top = "30px";
-            name.style.left = "20px";
-            name.style.fontFamily = "Poppins, sans-serif";
-            name.innerHTML = data.name;
-            console.log(
-              parseFloat(
-                getTextWidth(data.name, customgetCanvasFontSize(name))
-              ) +
-                25 +
-                "px"
-            );
-            console.log(customgetCanvasFontSize(name));
-            //create friendCode
-            let friendCode = document.createElement("p");
-            friendCode.id = "profile-friendcode-" + data.uid;
-            friendCode.style.color = "#959595";
-            friendCode.style.position = "relative";
-            friendCode.style.top = "-13px";
-            console.log(data.name, name);
-            friendCode.style.left =
-              parseFloat(
-                getTextWidth(data.name, customgetCanvasFontSize(name))
-              ) +
-              25 +
-              "px";
-            console.log("(" + data.friendCode + ")");
-            friendCode.innerHTML = "(" + data.friendCode + ")";
-            //create statustext
-            let statustext = document.createElement("p");
-            statustext.id = "profile-status-text-" + data.uid;
-            statustext.style.position = "relative";
-            statustext.style.top = "-30px";
-            statustext.style.left = "20px";
-            statustext.style.color = "#9a9a9a";
-            if (
-              getTextWidth(data.status, customgetCanvasFontSize(statustext)) >
-              531
-            ) {
-              //loop thru text and remove one character until its less than 531 pixels, then set the result to statustext.innerHTML with "..."
-              let text = data.status;
-              let textwidth = getTextWidth(
-                text,
-                customgetCanvasFontSize(statustext)
-              );
-              while (textwidth > 531) {
-                text = text.substring(0, text.length - 1);
-                textwidth = getTextWidth(
-                  text,
-                  customgetCanvasFontSize(statustext)
-                );
-              }
-              statustext.innerHTML = text + "...";
-            } else {
-              statustext.innerHTML = data.status;
-            }
-            //create aboutme
-            let aboutme = null;
-            let aboutmeDiv = null;
-            let aboutmeText = null;
-
-            if (data.aboutMe) {
-              aboutme = document.createElement("p");
-              aboutme.id = "profile-aboutme-txt-" + data.uid;
-              aboutme.style.position = "relative";
-              aboutme.style.top = "-30px";
-              aboutme.style.left = "20px";
-              aboutme.style.color = "#949494";
-              aboutme.innerHTML = "About Me";
-              //create aboutme div
-              aboutmeDiv = document.createElement("div");
-              aboutmeDiv.id = "profile-aboutme-div-" + data.uid;
-              aboutmeDiv.style.position = "relative";
-              aboutmeDiv.style.top = "-45px";
-              aboutmeDiv.setAttribute("name", "aboutme");
-              aboutmeDiv.style.width = "calc(100% - 40px)";
-              aboutmeDiv.style.height = "auto";
-              aboutmeDiv.style.marginLeft = "20px";
-              aboutmeDiv.style.marginRight = "20px";
-              aboutmeDiv.style.borderRadius = "8px";
-
-              //create aboutme text
-              aboutmeText = document.createElement("p");
-              aboutmeText.id = "profile-aboutme-" + data.uid;
-
-              aboutmeText.style.position = "inherit";
-              aboutmeText.style.top = "5px";
-              aboutmeText.style.fontSize = "14px";
-              aboutmeText.style.color = "#ccc";
-              aboutmeText.innerHTML = convertAbtMe(data.aboutMe);
-            }
-
-            //append everything to each other
-            profile.appendChild(profiletop);
-            bannercontainer.appendChild(banner);
-            profiletop.appendChild(bannercontainer);
-            profiletop.appendChild(pfp);
-            pfp.appendChild(outline);
-            pfp.appendChild(pfpimg);
-            pfp.appendChild(status);
-            profiletop.appendChild(badges);
-            profile.appendChild(name);
-            profile.appendChild(friendCode);
-            profile.appendChild(statustext);
-            if (aboutme && aboutmeDiv && aboutmeText) {
-              profile.appendChild(aboutme);
-              profile.appendChild(aboutmeDiv);
-              aboutmeDiv.appendChild(aboutmeText);
-            }
-            return profile;
+            inHome = false;
           }
           function convertAbtMe(text) {
             // there are atleast 2 of **s in text
@@ -1261,9 +1329,9 @@
             text = text.replace("\n", "<br>");
             return text;
           }
-          function showUserDetail(user) {
+          async function showUserDetail(user) {
             document.getElementById("profile-img").innerHTML += `
-          <img id="pfp" src=${user.photoURL}></img>
+          <img id="pfp" referrerpolicy="no-referrer" src=${user.photoURL}></img>
           `;
             document.getElementById("profile-username").innerHTML += `
           <span id="username"><b>${escapeString(user.displayName)}</b></span>
@@ -1288,7 +1356,7 @@
               .replace(/"/g, "&quot;")
               .replace(/'/g, "&#039;");
           }
-          function continueSetup() {
+          async function continueSetup() {
             document
               .getElementById("messageBox")
               .addEventListener("keyup", function (event) {
@@ -1319,21 +1387,106 @@
               return result;
             }
             function getServer() {
-              //get the name variable of the ol with id messageList
-              var messageList = document.getElementById("messageList");
-              //get the name variable of the ol with id messageList
               var server = currentUser.focusedServer;
               return server;
             }
+            sS = setServer;
+            pSI = parseServerImage;
+            function parseServerImage() {
+              const reader = new FileReader();
+              reader.onload = function () {
+                const bytes = new Uint8Array(this.result);
+                socket.emit("changeServerImage", {
+                  server: currentUser.focusedServer.serverID,
+                  token: firebase.auth().currentUser.xa,
+                  image: bytes,
+                });
+              };
+              reader.readAsArrayBuffer(
+                document.getElementById("srvImg-chg").files[0]
+              );
+            }
             function setServer(server) {
+              console.log(server);
               //get the name variable of the ol with id messageList
               var messageList = document.getElementById("messageList");
               //get the name variable of the ol with id messageList
-              messageList.setAttribute("name", server);
+              messageList.setAttribute("name", server.serverID);
+              let badgeLoc = server.serverBadge;
+              let serverName = document.getElementById("serverName");
+              // serverName max text with badge: 202 px
+              // serverName max text without badge: 235.6666717529297 px
+
+              //when there is a badge, set the "left" css style attfribute to 35 px on the server name otherwise, set it to 40
+              if (badgeLoc == "") {
+                serverName.style.left = "20px";
+              } else {
+                serverName.style.left = "45px";
+              }
+              // make sure the text is not too long, do that by using the function getTextWidth
+              let textWidth = getTextWidth(
+                server.name,
+                getCanvasFontSize(serverName)
+              );
+              // if the text is too long, make sure its less than the max width + 13.550000190734863 px and add "..." to the end of the text, the function return the width in px
+              if (badgeLoc == "") {
+                if (textWidth > 222.1166715621948) {
+                  while (textWidth > 222.1166715621948) {
+                    server.name = server.name.substring(
+                      0,
+                      server.name.length - 1
+                    );
+                    textWidth = getTextWidth(
+                      server.name,
+                      getCanvasFontSize(serverName)
+                    );
+                  }
+                  server.name = server.name + "...";
+                }
+              } else {
+                if (textWidth > 178.4499998092651) {
+                  while (textWidth > 178.4499998092651) {
+                    server.name = server.name.substring(
+                      0,
+                      server.name.length - 1
+                    );
+                    textWidth = getTextWidth(
+                      server.name,
+                      getCanvasFontSize(serverName)
+                    );
+                  }
+                  server.name = server.name + "...";
+                }
+              }
+              document.getElementById("serverArrow").style.visibility =
+                "visible";
+              document.getElementById("channel-list").style.visibility =
+                "visible";
+              serverName.innerText = server.name;
+              if (badgeLoc == "") {
+                document.getElementById("serverBadge").style.visibility =
+                  "hidden";
+              } else {
+                document.getElementById("serverBadge").style.visibility =
+                  "visible";
+                document.getElementById("serverBadge").src = badgeLoc;
+              }
+
               currentUser.focusedServer = server;
             }
             function sendMessage() {
               var message = document.getElementById("messageBox").value;
+              if (message === "AW_DBG_HIDE") {
+                  document.getElementById("messageBox").value = "";
+                  if (document.getElementById("main").classList.contains("hide")) {
+                      //remove it
+                        document.getElementById("main").classList.remove("hide");
+                  } else {
+                      //add it
+                        document.getElementById("main").classList.add("hide");
+                  }
+                  return
+              }
               let code = Math.floor(new Date().getTime() * (Math.random() + 1));
               if (message != "") {
                 socket.emit("sendMessage", {
@@ -1343,28 +1496,27 @@
                   elementcode: code,
                   server: currentUser.focusedServer || "global",
                 });
-
-                document.getElementById("messageList").innerHTML +=
-                  "<li id='temp-msg-" +
-                  code +
-                  "' class='pending'>" +
-                  "<img id='sender-pfp-" +
-                  code +
-                  "'>" +
-                  "<p id='usrname'><u><b>" +
-                  currentUser.name +
-                  "</b></u>" +
-                  "<br> " +
-                  escapeString(message) +
-                  "</p>" +
-                  "</li>";
-                document.getElementById("messageList").innerHTML += "<br> ";
-                document.getElementById("sender-pfp-" + code).src =
-                  currentUser.picture;
-                document.getElementById("messageList").scrollTop =
-                  document.getElementById("messageList").scrollHeight;
-                document.getElementById("messageBox").value = "";
               }
+              document.getElementById("messageList").innerHTML +=
+                "<li id='temp-msg-" +
+                code +
+                "' class='pending'>" +
+                "<img id='sender-pfp-" +
+                code +
+                "'>" +
+                "<p id='usrname'><u><b>" +
+                currentUser.name +
+                "</b></u>" +
+                "<br> " +
+                escapeString(message) +
+                "</p>" +
+                "</li>";
+              document.getElementById("messageList").innerHTML += "<br> ";
+              document.getElementById("sender-pfp-" + code).src =
+                currentUser.picture;
+              document.getElementById("messageList").scrollTop =
+                document.getElementById("messageList").scrollHeight;
+              document.getElementById("messageBox").value = "";
             }
             document
               .getElementById("signout")
@@ -1602,20 +1754,119 @@
         />
       </div>
       <div id="account">
-        <div class="dropdown" style="position: relative">
+        <div id="main" class="dropdown" style="position: relative; transition: left 0.75s ease; left:0px;">
           <div
+            id="server-left-div"
             style="
-              background-color: #202225;
-              position: fixed;
-              top: 0px;
-              left: 0;
-              width: 70px;
-              height: 100%;
-              z-index: 1;
+              overflow-x: hidden;
+              overflow-y: scroll;
+              scrollbar-width: none;
             "
-          ></div>
-          <div id="server-div"></div>
+          >
+            <div id="mainSection" style="padding-top:10px;">
+              <div
+                id="home-btn"
+                style="
+                  position: absolute;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  padding-top: 0px; /*! background-color: #2d2f31; */
+                  height: 60px;
+                  width: 60px;
+                  padding-left: 5px;
+                  padding-right: 5px;
+                  border-radius: 50%;
+                "
+              >
+                <div
+                  id="homebtncover"
+                  style="
+                    background-color: #343638;
+                    width: calc(100% - 15px);
+                    position: absolute;
+                    height: 100%;
+                    border-radius: 50%; /*! padding-left: 5px; */ /*! padding-right: 5px; */
+                    width: 60px;
+                    transition: background-color 0.125s, border-radius 0.125s,
+                      ease 0.125s;
+                    z-index: 2;
+                  "
+                ></div>
+                <img
+                  style="
+                    width: calc(100% - 20px);
+                    height: calc(100% - 20px); /*! padding-top: 2px; */
+                    z-index: 2;
+                  "
+                  src="/img/homebtn.png"
+                  id="homebtnimg"
+                />
+              </div>
+              <div
+                style="
+                  position: absolute;
+                  background-color: #303134;
+                  width: calc(100% - 40px);
+                  height: 3px;
+                  top: 80px;
+                  padding-left: 2px;
+                  padding-right: 2px;
+                  display: flex;
+                  border-radius: 10vh;
+                  left: 50%;
+                  transform: translateX(-50%);
+                "
+                id="server-left-line"
+              ></div>
+              <div
+                id="mainServers"
+                style="
+                  width: 100%;
+                  height: auto;
+                  position: absolute;
+                  margin-top: 80px;
+                "
+              ></div>
+            </div>
+          </div>
+          <div id="server-div">
+            <img
+              id="serverBadge"
+              style="width: 30px; left: 15px; position: relative"
+            />
+            <p
+              id="serverName"
+              style="
+                color: white;
+                font-weight: bolder;
+                left: 35px;
+                position: relative;
+                transform: translateX(-10%);
+                /*! margin-left: 60px; */
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                -webkit-box-flex: 1;
+                -ms-flex: 1;
+                flex: 1;
+              "
+            ></p>
+            <img
+              src="/img/arrow_down.svg"
+              id="serverArrow"
+              style="
+                color: white;
+                width: 25px;
+                right: 20px;
+                position: absolute;
+                fill: white;
+                visibility: hidden;
+              "
+            />
+          </div>
           <div id="friend-list"></div>
+          <div id="channel-list"></div>
           <div id="serverline"></div>
           <div id="profileSection">
             <div id="profile-img" class="dropbtn">
@@ -1625,7 +1876,7 @@
             <div id="profile-username"></div>
             <p
               id="profile-status"
-              style="top: 20px; left: 130px"
+              style="bottom: 0px; left: 62px"
               class="user-status"
             ></p>
           </div>
@@ -1656,11 +1907,21 @@
     </div>
 
     <style>
-      
-      *::-webkit-scrollbar {
-        display: none;
+        .hide {
+            left: -370px !important;
+        }
+      .srvpic {
+        width: calc(100% - 5px);
+        height: calc(100% - 5px);
+        /* padding-top: 2px; */
+        z-index: 2;
+        border-radius: 10vh;
+        transition: border-radius 0.25s, ease 0.25s;
       }
-
+      .srvpic:hover {
+        border-radius: 20px !important;
+        cursor: pointer !important;
+      }
       .pending {
         color: gray;
       }
@@ -1671,9 +1932,9 @@
       }
 
       #pfp {
-        position: fixed;
+        position: absolute;
         bottom: 10px;
-        left: 80px;
+        left: 12px;
         border-radius: 50%;
         width: 40px;
         height: 40px;
@@ -1800,9 +2061,9 @@
 
       #username {
         color: #dddddd;
-        left: 130px;
-        position: fixed;
-        margin-top: 10px;
+        left: 62px;
+        position: absolute;
+        bottom:27px;
         font-size: 15px;
       }
 
@@ -1832,19 +2093,40 @@
       }
 
       #friend-list {
-        position: fixed;
+        position: relative;
         background-color: #292b30;
-        top: 63px;
-        left: 70px;
-        width: 301px;
-        height: 100%;
+        top: 41px;
+        left: 60px;
+        width: 303px;
+        height: auto;
         overflow-y: scroll;
         overflow-x: hidden;
         -ms-overflow-style: none;
         scrollbar-width: none;
+        min-height: calc(100vh - 49px);      
       }
 
       #friend-list::-webkit-scrollbar {
+        display: none;
+      }
+
+      #channel-list {
+        visibility: hidden;
+        position: absolute;
+        background-color: #292b30;
+        top: 41px;
+        left: 60px;
+        width: 303px;
+        height: auto;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        min-height: calc(100vh - 49px);      
+        z-index:3;
+      }
+
+      #channel-list::-webkit-scrollbar {
         display: none;
       }
 
@@ -1857,6 +2139,7 @@
         align-items: center;
         display: flex;
         padding-left: 15px;
+        position:relative;
         /* position: absolute; */
       }
 
@@ -1866,19 +2149,48 @@
         width: 40px;
         position: relative;
       }
+      .server {
+        border-radius: 10vh;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+      }
+      .server:hover {
+        cursor: pointer;
+      }
+      .server:hover .server-image {
+        border-radius: 14px !important;
+      }
+      .sidebar-selected {
+        height: 30px !important;
+      }
+      .server-image {
+        width: 48px;
+        height: 48px;
+        border-radius: 10vh;
+        transition: border-radius 0.125s, ease 0.125s;
+      }
+      .server-sidebar {
+        width: 4px;
+        height: 4px;
+        background-color: white;
+        left: 2px;
+        position: fixed;
+        border-radius: 10vh;
+        transition: height 0.125s, ease 0.125s;
+      }
 
       .friend-name {
-        /* top: -9px;
-        left: 60px; */
         position: absolute;
         font-weight: initial;
         color: #999999;
+        z-index:2;
       }
 
       .friend-status {
         position: absolute;
-        /* top: 13px;
-        left: 60px; */
         font-size: 12px;
         font-weight: initial;
         color: gray;
@@ -1897,12 +2209,30 @@
         top: -10px;
         left: 60px;
         width: 303px;
-        height: 64px;
+        height: 50px;
+        z-index: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #home-btn:hover #homebtncover {
+        background-color: #5865f2 !important;
+        border-radius: 17px !important;
+      }
+      #server-left-div {
+        background-color: #202225;
+        position: absolute;
+        top: -8px;
+        left: -10px;
+        width: 70px;
+        height: auto;
+        z-index: 2;
+        min-height: 100vh;
       }
       #serverline {
         position: absolute;
-        top: 54px;
-        width: 304px;
+        top: 40px;
+        width: 303px;
         left: 60px;
         height: 1px;
         background-color: #28292c;
@@ -1910,9 +2240,9 @@
 
       #userstatuspfp {
         bottom: 10px;
-        position: fixed;
-        left: 100px;
-        z-index: 2;
+        position: absolute;
+        left: 32px;
+        z-index: 1;
       }
 
       #transparentOutline {
@@ -1920,9 +2250,9 @@
         background-color: #292b2f;
         width: 12px;
         height: 12px;
-        position: fixed;
+        position: absolute;
         bottom: 10px;
-        left: 106px;
+        left: 38px;
         z-index: 1;
         border-radius: 10vh;
       }
@@ -2079,22 +2409,22 @@
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         -khtml-user-select: none;
+        user-select: none;
       }
 
       #messageList li:hover {
-        background: #32353B;
+        background: #32353b;
       }
 
       /* when li is hovered over .timebox should turn white */
 
       #messageList li:hover .timebox {
-        color: #524F54;
+        color: #524f54;
       }
 
       #aftermsg {
-        margin: 0px;      
+        margin: 0px;
       }
-
 
       #messageList li #usrname {
         top: 0;
@@ -2118,7 +2448,7 @@
         top: -10px;
         width: 100%;
         left: calc(18.3rem + 70px);
-        height: 62px;
+        height: 48px;
         background-color: #36393f;
         color: white;
         font-size: 1.2rem;
@@ -2130,12 +2460,13 @@
 
       #profileSection {
         background-color: #292b2f;
-        position: fixed;
-        bottom: 0;
-        left: 0;
+        position: absolute;
+        bottom: -40px;
+        left: 62px;
         width: 301px;
         height: 60px;
-      }
+        z-index:2;
+    }
 
       @media screen and (max-width: 768px) {
         #channelHeader {
@@ -2239,346 +2570,11 @@
       }
 
       @media screen and (max-width: 576px) {
-        #channelHeader {
-          position: fixed;
-          display: flex;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: 52px;
-          background-color: #36393f;
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          padding-left: 10px;
-          padding-top: 10px;
-          border-bottom: 1px solid #28292c;
-        }
-
-        #messageList {
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 95%;
-          padding-left: 10px;
-        }
-
-        #messageList li {
-          display: flex;
-          flex-direction: row;
-          overflow-x: hidden;
-          white-space: normal;
-          overflow-wrap: anywhere;
-          height: auto;
-        }
-
-        #messageList li #usrname {
-          display: inline-table;
-        }
-
-        #messageList li img {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          margin-right: 10px;
-          margin-top: 5px;
-        }
-
-        #messageList li #usrname {
-          top: 0;
-          left: 0;
-          margin: 0px;
-          height: 25px;
-        }
-
-        #messageList li #text {
-          margin-top: 21px;
-          margin-bottom: 0px;
-          margin-right: 0px;
-          position: relative;
-          left: -60px;
-        }
-
-        #messages {
-          position: fixed;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: calc(100% - 52px);
-        }
-
-        #friend-list {
-          display: none;
-        }
-
-        #chat {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 100%;
-          height: 100%;
-          background-color: #36393f;
-        }
-
-        #chat input {
-          text-indent: 10px;
-          position: absolute;
-          /* width: 90%; */
-          left: 61px;
-          bottom: 73px;
-          width: 242px;
-          margin-left: -45%;
-          margin-bottom: 10px;
-          height: 30px;
-        }
-
-        #profileSection {
-          background-color: #292b2f;
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 60px;
-        }
       }
 
       @media screen and (max-width: 425px) {
-        #channelHeader {
-          position: fixed;
-          display: flex;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: 52px;
-          background-color: #36393f;
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          padding-left: 10px;
-          padding-top: 10px;
-          border-bottom: 1px solid #28292c;
-        }
-
-        #messageList {
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 95%;
-          padding-left: 10px;
-        }
-
-        #messageList li {
-          display: flex;
-          flex-direction: row;
-          overflow-x: hidden;
-          white-space: normal;
-          overflow-wrap: anywhere;
-          height: auto;
-        }
-
-        #messageList li #usrname {
-          display: inline-table;
-        }
-
-        #messageList li img {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          margin-right: 10px;
-          margin-top: 5px;
-        }
-
-        #messageList li #usrname {
-          top: 0;
-          left: 0;
-          margin: 0px;
-          height: 25px;
-        }
-
-        #messageList li #text {
-          margin-top: 21px;
-          margin-bottom: 0px;
-          margin-right: 0px;
-          position: relative;
-          left: -60px;
-        }
-
-        #messages {
-          position: fixed;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: calc(100% - 52px);
-        }
-
-        #chat {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 100%;
-          height: 100%;
-          background-color: #36393f;
-        }
-
-        #chat input {
-          text-indent: 10px;
-          position: absolute;
-          /* width: 90%; */
-          left: 61px;
-          bottom: 73px;
-          width: 242px;
-          margin-left: -45%;
-          margin-bottom: 10px;
-          height: 30px;
-        }
-
-        #profileSection {
-          background-color: #292b2f;
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 60px;
-        }
       }
 
-      @media screen and (max-width: 576px) {
-        #channelHeader {
-          position: fixed;
-          display: flex;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: 52px;
-          background-color: #36393f;
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          padding-left: 10px;
-          padding-top: 10px;
-          border-bottom: 1px solid #28292c;
-        }
-
-        #messageList {
-          overflow-x: auto;
-          white-space: nowrap;
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 100%;
-          padding-left: 10px;
-        }
-
-        #messages {
-          position: fixed;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: calc(100% - 52px);
-        }
-
-        #chat {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 100%;
-          height: 100%;
-          background-color: #36393f;
-        }
-
-        #chat input {
-          text-indent: 10px;
-          position: absolute;
-          /* width: 90%; */
-          left: 61px;
-          bottom: 73px;
-          width: 242px;
-          margin-left: -45%;
-          margin-bottom: 10px;
-          height: 30px;
-        }
-
-        #profileSection {
-          background-color: #292b2f;
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 60px;
-        }
-      }
-
-      @media screen and (max-width: 425px) {
-        #channelHeader {
-          position: fixed;
-          display: flex;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: 52px;
-          background-color: #36393f;
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          padding-left: 10px;
-          padding-top: 10px;
-          border-bottom: 1px solid #28292c;
-        }
-
-        #messageList {
-          overflow-wrap: break-word;
-          word-wrap: break-word;
-          overflow-x: auto;
-          white-space: nowrap;
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 100%;
-          padding-left: 10px;
-        }
-
-        #messages {
-          position: fixed;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: calc(100% - 52px);
-        }
-
-        #chat {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 100%;
-          height: 100%;
-          background-color: #36393f;
-        }
-
-        #chat input {
-          text-indent: 10px;
-          position: absolute;
-          /* width: 90%; */
-          left: 61px;
-          bottom: 73px;
-          width: 242px;
-          margin-left: -45%;
-          margin-bottom: 10px;
-          height: 30px;
-        }
-
-        #profileSection {
-          background-color: #292b2f;
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 60px;
-        }
-      }
-    </style>
+      </style>
   </body>
 </html>

@@ -1,7 +1,7 @@
 (async () => {
   const firebaseConfig = {
     apiKey: "AIzaSyBXksQoBsWZkS8Dw_P90mb9BP-wt9XaMrg", //<- lemfao
-    authDomain: "authworria.firebaseapp.com",
+    authDomain: "authworria.com",
     databaseURL:
       "https://authworria-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "authworria",
