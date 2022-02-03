@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
+  <head>
+    <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Cache-Control"
       content="no-cache, no-store, must-revalidate"
-      />
-      <meta http-equiv="Pragma" content="no-cache" />
-      <meta http-equiv="Expires" content="0" />
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <script
       src="https://kit.fontawesome.com/1788c719dd.js"
       crossorigin="anonymous"
-      ></script>
-      <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+    ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -29,7 +28,11 @@
       integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
       crossorigin="anonymous"
     ></script>
-    <script type="module" src="js/imgtob64.js"></script>
+    <script src="js/app.js"></script>
+    <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+    <script>
+        document.addEventListener("deviceready", onDeviceReady, false); // user is on mobile, set up a notification
+    </script>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
@@ -61,10 +64,7 @@
       integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
       crossorigin="anonymous"
     ></script>
-    <script src="js/app.js"></script>
-    <script>
-      document.addEventListener("deviceready", OneSignalInit, false);
-    </script>
+    <div data-tf-popover="dRWNEeLp" data-tf-button-color="#D65C99" data-tf-tooltip="Do you mind spending 2 minutes to give feedback " data-tf-open="load" data-tf-chat data-tf-medium="snippet" style="all:unset;"></div><script src="//embed.typeform.com/next/embed.js"></script>
     <!-- type="module" -->
     <script>
       let socket = null;
@@ -79,11 +79,13 @@
         users: {},
         servers: {},
       };
+      let doneFirstCheck = false;
     </script>
     <script>
       //on window load
       window.onload = () => {
         (async () => {
+            let MUOSU = null
           let sS = null;
           let inHome = false;
           smth.getCanvasFontSize = getCanvasFontSize;
@@ -500,11 +502,14 @@
                 // Identifies the user to the server using firebases token
                 token: firebase?.auth()?.currentUser?.xa,
               });
+              if (window.plugins.OneSignal) {
+                updateUserID();
+              }
               //
             });
             socket.on("getInfoProfRes", async function (data) {
               if (data.err) return;
-            });
+            })
             socket.on("removeKnownRes", async function (data) {
               // Remove the uid user from the friend list (element has id "user-<uid>")
               document.getElementById("user-" + data.uid).remove();
@@ -1407,7 +1412,6 @@
               );
             }
             function setServer(server) {
-              console.log(server);
               //get the name variable of the ol with id messageList
               var messageList = document.getElementById("messageList");
               //get the name variable of the ol with id messageList
@@ -1477,15 +1481,17 @@
             function sendMessage() {
               var message = document.getElementById("messageBox").value;
               if (message === "AW_DBG_HIDE") {
-                  document.getElementById("messageBox").value = "";
-                  if (document.getElementById("main").classList.contains("hide")) {
-                      //remove it
-                        document.getElementById("main").classList.remove("hide");
-                  } else {
-                      //add it
-                        document.getElementById("main").classList.add("hide");
-                  }
-                  return
+                document.getElementById("messageBox").value = "";
+                if (
+                  document.getElementById("main").classList.contains("hide")
+                ) {
+                  //remove it
+                  document.getElementById("main").classList.remove("hide");
+                } else {
+                  //add it
+                  document.getElementById("main").classList.add("hide");
+                }
+                return;
               }
               let code = Math.floor(new Date().getTime() * (Math.random() + 1));
               if (message != "") {
@@ -1539,7 +1545,8 @@
                 }
               });
 
-            //upon clicking on the "statusBtn" div, hide dropdown-content and show statusChange
+              //upon clicking on the "statusBtn" div, hide dropdown-content and show statusChange
+
             document
               .getElementById("statusBtn")
               .addEventListener("click", function () {
@@ -1754,7 +1761,11 @@
         />
       </div>
       <div id="account">
-        <div id="main" class="dropdown" style="position: relative; transition: left 0.75s ease; left:0px;">
+        <div
+          id="main"
+          class="dropdown"
+          style="position: relative; transition: left 0.75s ease; left: 0px"
+        >
           <div
             id="server-left-div"
             style="
@@ -1763,7 +1774,7 @@
               scrollbar-width: none;
             "
           >
-            <div id="mainSection" style="padding-top:10px;">
+            <div id="mainSection" style="padding-top: 10px">
               <div
                 id="home-btn"
                 style="
@@ -1907,9 +1918,9 @@
     </div>
 
     <style>
-        .hide {
-            left: -370px !important;
-        }
+      .hide {
+        left: -370px !important;
+      }
       .srvpic {
         width: calc(100% - 5px);
         height: calc(100% - 5px);
@@ -2063,7 +2074,7 @@
         color: #dddddd;
         left: 62px;
         position: absolute;
-        bottom:27px;
+        bottom: 27px;
         font-size: 15px;
       }
 
@@ -2103,7 +2114,7 @@
         overflow-x: hidden;
         -ms-overflow-style: none;
         scrollbar-width: none;
-        min-height: calc(100vh - 49px);      
+        min-height: calc(100vh - 49px);
       }
 
       #friend-list::-webkit-scrollbar {
@@ -2122,8 +2133,8 @@
         overflow-x: hidden;
         -ms-overflow-style: none;
         scrollbar-width: none;
-        min-height: calc(100vh - 49px);      
-        z-index:3;
+        min-height: calc(100vh - 49px);
+        z-index: 3;
       }
 
       #channel-list::-webkit-scrollbar {
@@ -2139,7 +2150,7 @@
         align-items: center;
         display: flex;
         padding-left: 15px;
-        position:relative;
+        position: relative;
         /* position: absolute; */
       }
 
@@ -2186,7 +2197,7 @@
         position: absolute;
         font-weight: initial;
         color: #999999;
-        z-index:2;
+        z-index: 2;
       }
 
       .friend-status {
@@ -2465,108 +2476,10 @@
         left: 62px;
         width: 301px;
         height: 60px;
-        z-index:2;
-    }
+        z-index: 2;
+      }
 
       @media screen and (max-width: 768px) {
-        #channelHeader {
-          position: fixed;
-          display: flex;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: 52px;
-          background-color: #36393f;
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          padding-left: 10px;
-          padding-top: 10px;
-          border-bottom: 1px solid #28292c;
-        }
-
-        #messageList {
-          color: white;
-          position: fixed;
-          margin-top: 70px;
-          height: calc(100% - 201px);
-          width: 95%;
-          padding-left: 10px;
-        }
-
-        #messageList li {
-          display: flex;
-          flex-direction: row;
-          overflow-x: hidden;
-          white-space: normal;
-          overflow-wrap: anywhere;
-          height: auto;
-        }
-
-        #messageList li #usrname {
-          display: inline-table;
-        }
-
-        #messageList li img {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          margin-right: 10px;
-          margin-top: 5px;
-        }
-
-        #messageList li #usrname {
-          top: 0;
-          left: 0;
-          margin: 0px;
-          height: 25px;
-        }
-
-        #messageList li #text {
-          margin-top: 21px;
-          margin-bottom: 0px;
-          margin-right: 0px;
-          position: relative;
-          left: -60px;
-        }
-
-        #messages {
-          position: fixed;
-          top: 0;
-          width: 100%;
-          left: 0;
-          height: calc(100% - 52px);
-        }
-
-        #chat {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 100%;
-          height: 100%;
-          background-color: #36393f;
-        }
-
-        #chat input {
-          text-indent: 10px;
-          position: absolute;
-          /* width: 90%; */
-          left: 61px;
-          bottom: 73px;
-          width: 242px;
-          margin-left: -45%;
-          margin-bottom: 10px;
-          height: 30px;
-        }
-
-        #profileSection {
-          background-color: #292b2f;
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 60px;
-        }
       }
 
       @media screen and (max-width: 576px) {
@@ -2574,7 +2487,6 @@
 
       @media screen and (max-width: 425px) {
       }
-
-      </style>
+    </style>
   </body>
 </html>

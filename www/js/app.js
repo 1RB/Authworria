@@ -1,18 +1,99 @@
-function OneSignalInit() {
-  // Uncomment to set OneSignal device logging to VERBOSE
-  // window.plugins.OneSignal.setLogLevel(6, 0);
-
-  // NOTE: Update the setAppId value below with your OneSignal AppId.
-  window.plugins.OneSignal.setAppId("92b3379f-1e34-42d9-90b5-766b6fcaa3e3");
-  window.plugins.OneSignal.setNotificationOpenedHandler(function (jsonData) {
-    console.log("notificationOpenedCallback: " + JSON.stringify(jsonData));
+async function onDeviceReady() {
+  let connectwhenBG = null;
+  cordova.plugins.backgroundMode.enable();
+  cordova.plugins.backgroundMode.overrideBackButton();
+  cordova.plugins.backgroundMode.setDefaults({ silent: true });
+  cordova.plugins.backgroundMode.setDefaults({
+    title: "Background",
+    text: "App is running in background",
   });
-
-  // iOS - Prompts the user for notification permissions.
-  //    * Since this shows a generic native prompt, we recommend instead using an In-App Message to prompt for notification permission (See step 6) to better communicate to your users what notifications they will get.
-  window.plugins.OneSignal.promptForPushNotificationsWithUserResponse(function (
-    accepted
-  ) {
-    console.log("User accepted notifications: " + accepted);
+  cordova.plugins.PowerOptimization.IsIgnoringBatteryOptimizations().then(
+    (result) => {
+      if (result) {
+        console.log("Battery optimizations are already set");
+      } else {
+        console.log("Requesting user to enable battery optimizations");
+        console.log(
+          window.localStorage.getItem("ignoreBatteryOptimizationsRequest")
+        );
+        if (
+          window.localStorage.getItem("ignoreBatteryOptimizationsRequest") ===
+            "false" ||
+          !window.localStorage.getItem("ignoreBatteryOptimizationsRequest")
+        ) {
+          Swal.fire({
+            title: "Battery optimizations are disabled",
+            text: "Battery optimizations are required for the app to work properly, request to turn them on?",
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            denyButtonText: `No`,
+          }).then((result) => {
+            /* Read more about isConfirmed, isDenied below */
+            if (result.isConfirmed) {
+              cordova.plugins.PowerOptimization.RequestOptimizations().then(
+                (result) => {
+                  console.log("User has accepted battery optimizations");
+                },
+                (err) => {
+                  console.log("User has denied battery optimizations");
+                  window.localStorage.setItem(
+                    "ignoreBatteryOptimizationsRequest",
+                    true
+                  );
+                }
+              );
+            } else if (result.isDenied) {
+              console.log(
+                "User denied the request to enable battery optimizations"
+              );
+              //session storage set ignoreBatteryOptimizationsRequest to true
+              window.localStorage.setItem(
+                "ignoreBatteryOptimizationsRequest",
+                true
+              );
+              console.log(
+                window.localStorage.getItem("ignoreBatteryOptimizationsRequest")
+              );
+            }
+          });
+        }
+      }
+    },
+    (err) => {
+      console.error(err);
+    }
+  );
+  cordova.plugins.backgroundMode.on("activate", function () {
+    console.log("Background mode activated");
+    connectwhenBG = setInterval(() => {
+      if (socket?.disconnected) {
+        console.log("connecting");
+        socket.connect();
+      }
+    }, 60000);
   });
+  cordova.plugins.backgroundMode.on("deactivate", function () {
+    console.log("Background mode deactivated");
+    clearInterval(connectwhenBG);
+  });
+  cordova.plugins.backgroundMode.on("failure", function () {
+    console.log("Background mode failed");
+  });
+  document.addEventListener(
+    "pause",
+    function () {
+      console.log("App Sleeping");
+    },
+    false
+  );
+  function setupNotifications() {
+    cordova.plugins.firebase.messaging
+      .requestPermission({ forceShow: true })
+      .then(function () {
+        console.log(
+          "You'll get foreground notifications when a push message arrives"
+        );
+      });
+  }
 }

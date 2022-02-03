@@ -47,6 +47,7 @@
 
     <!-- meta tags-->
     <meta name="title" content="Authworria" />
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta
       name="description"
       content="The GameCafe for you so grab your mates and have some coffee at Authworria, the perfect combination of gaming and chatting."
@@ -61,6 +62,7 @@
     <meta name="author" content="Ray" />
     <!-- end meta tags-->
     <title>Authworria</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -77,11 +79,18 @@
     integrity="sha384-1fOn6VtTq3PWwfsOrk45LnYcGosJwzMHv+Xh/Jx5303FVOXzEnw0EpLv30mtjmlj"
     crossorigin="anonymous"
   ></script>
+    <script src="js/app.js"></script>
+  <script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+  <script>
+      document.addEventListener("deviceready", onDeviceReady, false); // user is on mobile, set up a notification
+  </script>
   <body>
     <p hidden>
       THE GameCafe for YOU! So grab your mates and have some coffee at
       Authworria, the perfect combination of gaming and chatting.
     </p>
+    <div data-tf-popover="dRWNEeLp" data-tf-button-color="#D65C99" data-tf-tooltip="Do you mind spending 2 minutes to give feedback " data-tf-open="load" data-tf-chat data-tf-medium="snippet" style="all:unset;"></div><script src="//embed.typeform.com/next/embed.js"></script>
+
     <style>
       #joinServer:disabled {
         color: #999898 !important;
@@ -395,6 +404,7 @@
       //   console.log(analytics)
 
       (function () {
+        document.addEventListener("deviceready", onDeviceReady, false); // user is on mobile, set up a notification
         let list = window.location.href.split("/");
         let code = list.pop();
         let wordInvite = list.pop();
